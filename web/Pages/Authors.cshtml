@@ -1,0 +1,88 @@
+﻿@page
+@model web.Pages.AuthorsModel
+@{
+    ViewData["Title"] = "Авторы";
+}
+
+<h3>Реестр авторов</h3>
+<hr />
+
+<form method="get" style="margin-bottom: 15px;">
+    <table border="0" cellpadding="3" cellspacing="0">
+        <tr>
+            <td>Поиск по ФИО:</td>
+            <td>
+                <input type="text" name="SearchString" value="@Model.SearchString" style="width: 250px;" autocomplete="off" />
+            </td>
+            <td>
+                <input type="submit" value="Найти" />
+            </td>
+            @if (!string.IsNullOrEmpty(Model.SearchString))
+            {
+                <td>
+                    <small><a href="/Authors" style="margin-left: 10px; color: #555555;">[Сбросить]</a></small>
+                </td>
+            }
+        </tr>
+    </table>
+</form>
+
+@if (Model.Authors == null || !Model.Authors.Any())
+{
+    @if (!string.IsNullOrEmpty(Model.SearchString))
+    {
+        <p style="color: #b22222;">Ничего не найдено по запросу "<b>@Model.SearchString</b>". <a href="/Authors">Показать всех</a></p>
+    }
+    else
+    {
+        <p>В таблице нет данных. Проверьте базу данных на сервере <b>DESKTOP-KUTLJIK</b>.</p>
+    }
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0" width="100%">
+        <thead>
+            <tr bgcolor="#f0f0f0">
+                <th width="15%">Фотография</th>
+                <th width="35%">ФИО Автора</th>
+                <th width="50%">Биография</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Authors)
+            {
+                <tr>
+                    <td align="center" valign="middle">
+                        @if (!string.IsNullOrEmpty(item.ImagePath))
+                        {
+                            <img src="@item.ImagePath" width="80" style="border: 1px solid #000000;" alt="Фото" />
+                        }
+                        else
+                        {
+                            <span style="font-size: 11px; color: #555555; font-family: monospace;">null</span>
+                        }
+                    </td>
+
+                    <td valign="top" style="font-size: 15px;">
+                        <a asp-page="/AuthorBooks" asp-route-authorId="@item.AuthorID" style="color: #0000ee; text-decoration: underline;">
+                            <b>@item.AuthorSecondName @item.AuthorFirstName @item.AuthorPatronymic</b>
+                        </a>
+                    </td>
+
+                    <td valign="top" style="font-size: 13px; color: #222222; line-height: 1.4;">
+                        @if (!string.IsNullOrEmpty(item.AuthorBio))
+                        {
+                            @item.AuthorBio
+                        }
+                        else
+                        {
+                            <span style="color: #b22222; font-family: monospace; font-size: 12px;">null</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p><small><a href="/Index"> Назад к главной </a></small></p>

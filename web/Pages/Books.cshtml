@@ -1,0 +1,142 @@
+﻿@page
+@model web.Pages.BooksModel
+@{
+    ViewData["Title"] = "Общий книжный фонд";
+}
+
+<h3>Книжный фонд и номенклатура склада</h3>
+<hr />
+
+<form method="get" style="margin-bottom: 15px;">
+    <table border="0" cellpadding="3" cellspacing="0">
+        <tr>
+            <td>Поиск по названию:</td>
+            <td>
+                <input type="text" name="SearchString" value="@Model.SearchString" style="width: 200px;" autocomplete="off" />
+            </td>
+
+            <td style="padding-left: 15px;">Тип издания:</td>
+            <td>
+                <select name="SelectedTypeId" style="width: 180px;">
+                    <option value="">[Все категории фондов]</option>
+                    @if (Model.BookTypes != null)
+                    {
+                        foreach (var type in Model.BookTypes)
+                        {
+                            if (Model.SelectedTypeId == type.BookTypeID)
+                            {
+                                <option value="@type.BookTypeID" selected="selected">@type.BookTypeName</option>
+                            }
+                            else
+                            {
+                                <option value="@type.BookTypeID">@type.BookTypeName</option>
+                            }
+                        }
+                    }
+                </select>
+            </td>
+
+            <td style="padding-left: 10px;">
+                <input type="submit" value="Применить фильтр" />
+            </td>
+
+            @if (!string.IsNullOrEmpty(Model.SearchString) || Model.SelectedTypeId.HasValue)
+            {
+                <td>
+                    <small><a href="/Books" style="margin-left: 10px; color: #555555;">[Очистить]</a></small>
+                </td>
+            }
+        </tr>
+    </table>
+</form>
+
+@if (Model.Books == null || !Model.Books.Any())
+{
+    <p style="color: #b22222;">
+        По заданным критериям фильтрации ничего не найдено.
+        <a href="/Books">Сбросить фильтры</a>
+    </p>
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0" width="100%">
+        <thead>
+            <tr bgcolor="#f0f0f0">
+                <th width="12%">Обложка</th>
+                <th width="28%">Название номенклатуры</th>
+                <th width="20%">Тип</th>
+                <th width="20%">Авторы</th>
+                <th width="20%">Описание произведения</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in Model.Books)
+            {
+                <tr>
+                    <td align="center" valign="middle">
+                        @if (!string.IsNullOrEmpty(book.ImagePath))
+                        {
+                            <img src="@book.ImagePath" width="70" style="border: 1px solid #000000;" alt="Обложка" />
+                        }
+                        else
+                        {
+                            <span style="font-size: 11px; color: #555555; font-family: monospace;">null</span>
+                        }
+                    </td>
+
+                    <td valign="top" style="font-size: 15px;">
+                        <b>@book.BookName</b>
+                    </td>
+
+                    <td align="center" valign="top" style="font-size: 13px;">
+                        @if (book.BookType != null)
+                        {
+                            <span style="color: #008000; font-weight: bold;">[@book.BookType.BookTypeName]</span>
+                        }
+                        else
+                        {
+                            <span style="color: #b22222; font-family: monospace; font-size: 12px;">Тип #@book.BookTypeID</span>
+                        }
+                    </td>
+
+                    <td valign="top" style="font-size: 14px;">
+                        @{
+                            var authorsForThisBook = Model.BookAuthorsConnections
+                            .Where(ba => ba.BookID == book.BookID)
+                            .Select(ba => ba.Author)
+                            .Where(a => a != null)
+                            .ToList();
+                        }
+
+                        @if (authorsForThisBook.Any())
+                        {
+                            <ul style="margin: 0; padding-left: 15px;">
+                                @foreach (var author in authorsForThisBook)
+                                {
+                                    <li>@author.AuthorSecondName @author.AuthorFirstName @author.AuthorPatronymic</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span style="color: #b22222; font-family: monospace; font-size: 12px;">null</span>
+                        }
+                    </td>
+
+                    <td valign="top" style="font-size: 13px; color: #222222; line-height: 1.4;">
+                        @if (!string.IsNullOrEmpty(book.BookDesc))
+                        {
+                            @book.BookDesc
+                        }
+                        else
+                        {
+                            <span style="color: #b22222; font-family: monospace; font-size: 12px;">null</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p><small><a href="/Index"> Назад к главной </a></small></p>

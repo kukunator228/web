@@ -1,0 +1,102 @@
+﻿@page "{authorId:int}"
+@model web.Pages.AuthorBooksModel
+@{
+    ViewData["Title"] = "Книги автора";
+}
+
+<h3>Все произведения автора: @Model.AuthorInfo.AuthorSecondName @Model.AuthorInfo.AuthorFirstName @Model.AuthorInfo.AuthorPatronymic</h3>
+<hr />
+
+<form method="get" style="margin-bottom: 15px;">
+    <table border="0" cellpadding="3" cellspacing="0">
+        <tr>
+            <td>Поиск по названию:</td>
+            <td>
+                <input type="text" name="SearchString" value="@Model.SearchString" style="width: 250px;" autocomplete="off" />
+            </td>
+            <td>
+                <input type="submit" value="Найти" />
+            </td>
+            @if (!string.IsNullOrEmpty(Model.SearchString))
+            {
+                <td>
+                    <small><a href="/AuthorBooks/@Model.AuthorInfo.AuthorID" style="margin-left: 10px; color: #555555;">[Сбросить]</a></small>
+                </td>
+            }
+        </tr>
+    </table>
+</form>
+
+@if (Model.AuthorBookConnections == null || !Model.AuthorBookConnections.Any())
+{
+    @if (!string.IsNullOrEmpty(Model.SearchString))
+    {
+        <p style="color: #b22222;">У данного автора не найдено произведений по запросу "<b>@Model.SearchString</b>". <a href="/AuthorBooks/@Model.AuthorInfo.AuthorID">Показать все труды</a></p>
+    }
+    else
+    {
+        <p>У данного автора пока нет зарегистрированных произведений в системе Склад.</p>
+    }
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0" width="100%">
+        <thead>
+            <tr bgcolor="#f0f0f0">
+                <th width="12%">Обложка</th>
+                <th width="38%">Название произведения</th>
+                <th width="15%">Тип книги</th>
+                <th width="35%">Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.AuthorBookConnections)
+            {
+                <tr>
+                    <td align="center" valign="middle">
+                        @if (!string.IsNullOrEmpty(item.Book.ImagePath))
+                        {
+                            <img src="@item.Book.ImagePath" width="70" style="border: 1px solid #000000;" alt="Обложка" />
+                        }
+                        else
+                        {
+                            <span style="font-size: 11px; color: #555555; font-family: monospace;">null</span>
+                        }
+                    </td>
+
+                    <td valign="top" style="font-size: 15px;">
+                        <b>@item.Book.BookName</b>
+                    </td>
+
+                    <td align="center" valign="top" style="font-size: 13px;">
+                        @if (item.Book.BookTypeID == 1)
+                        {
+                            <span>[Текст]</span>
+                        }
+                        else if (item.Book.BookTypeID == 2)
+                        {
+                            <b>[Аудио]</b>
+                        }
+                        else
+                        {
+                            <span>Тип: @item.Book.BookTypeID</span>
+                        }
+                    </td>
+
+                    <td valign="top" style="font-size: 13px; color: #222222; line-height: 1.4;">
+                        @if (!string.IsNullOrEmpty(item.Book.BookDesc))
+                        {
+                            @item.Book.BookDesc
+                        }
+                        else
+                        {
+                            <span style="color: #b22222; font-family: monospace; font-size: 12px;">null</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p><small><a href="/Authors">&lt;&lt; Вернуться к реестру авторов</a></small></p>

@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ИС </title>
+
+    <style>
+
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            font-family: "Times New Roman", Times, serif;
+            margin: 20px;
+        }
+
+        a, a:visited {
+            color: #0000ee;
+            text-decoration: underline;
+        }
+
+            a:hover {
+                color: #ff0000;
+            }
+
+        .status-null {
+            color: #b22222;
+            font-family: monospace;
+        }
+
+        .status-ok {
+            color: #008000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ёлочный</h1>
+    <p><i>Книжный магазин</i></p>
+    <hr />
+
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <td>
+                [ <a asp-page="/Index">Главная</a> ] &nbsp;
+                [ <a asp-page="/Authors">Авторы</a> ] &nbsp;
+                [ <a asp-page="/Books">Книги</a> ] &nbsp;
+            </td>
+            <td align="right">
+                <a asp-page="/Login">Войти</a> | <a asp-page="/Register">Регистрация</a>
+            </td>
+        </tr>
+    </table>
+    <hr />
+
+    <table width="100%" border="1" cellpadding="10" cellspacing="0">
+        <tr>
+            <td width="20%" valign="top">
+                <b>Разделы:</b>
+                <ul>
+                    <li><a asp-page="/Index">Каталог</a></li>
+                    <li><a asp-page="/Authors">Авторы</a></li>
+                    <li><a asp-page="/Books">Книги</a></li>
+                </ul>
+
+                <hr />
+
+                <b>Статус:</b>
+                <p style="font-size: 12px; margin-bottom: 0;">
+                    Юзер: <span class="status-null">null</span><br />
+                    БД: <span class="status-ok">[OK]</span>
+                </p>
+            </td>
+
+            <td width="80%" valign="top">
+                @RenderBody()
+            </td>
+        </tr>
+    </table>
+
+    <hr />
+    <p align="center" style="font-size: 12px; color: #555555;">
+        &copy; 2026 ИС «Ёлочный».
+    </p>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

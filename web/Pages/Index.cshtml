@@ -1,0 +1,87 @@
+﻿@page
+@model web.Pages.IndexModel
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<h3>Панель ИС «Ёлочный»</h3>
+<p>Добро пожаловать</p>
+<hr />
+
+<h4>Состояние фонда литературы</h4>
+<table border="1" cellpadding="10" cellspacing="0" width="100%" style="text-align: center;">
+    <tr bgcolor="#f0f0f0">
+        <th width="33%">Текстовые издания (Тип #1)</th>
+        <th width="33%">Аудиоматериалы (Тип #2)</th>
+        <th width="34%">Зарегистрировано авторов</th>
+    </tr>
+    <tr>
+        <td style="font-size: 20px; font-weight: bold;">@Model.TotalBooksCount</td>
+        <td style="font-size: 20px; font-weight: bold;">@Model.TotalAudioCount</td>
+        <td style="font-size: 20px; font-weight: bold; color: #0000ee;">@Model.TotalAuthorsCount</td>
+    </tr>
+</table>
+
+<br />
+<br />
+
+<h4>Новые поступления на склад (Последние добавленные)</h4>
+
+@if (Model.RecentBooks == null || !Model.RecentBooks.Any())
+{
+    <p><i>В базе данных пока нет записей о книгах.</i></p>
+}
+else
+{
+    <table border="1" cellpadding="6" cellspacing="0" width="100%">
+        <thead>
+            <tr bgcolor="#f0f0f0">
+                <th width="12%">Обложка</th>
+                <th width="48%">Название номенклатуры</th>
+                <th width="40%">Формат</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in Model.RecentBooks)
+            {
+                <tr>
+                    <td align="center" valign="middle">
+                        @if (!string.IsNullOrEmpty(book.ImagePath))
+                        {
+                            <img src="@book.ImagePath" width="50" style="border: 1px solid #000000;" alt="Обложка" />
+                        }
+                        else
+                        {
+                            <span style="font-size: 11px; color: #555555; font-family: monospace;">null</span>
+                        }
+                    </td>
+
+                    <td>
+                        <b>@book.BookName</b>
+                    </td>
+
+                    <td align="center">
+                        @if (book.BookTypeID == 1)
+                        {
+                            <span>Печатное издание</span>
+                        }
+                        else if (book.BookTypeID == 2)
+                        {
+                            <b>Аудиокнига</b>
+                        }
+                        else
+                        {
+                            <span>Указан тип: @book.BookTypeID</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<br />
+<hr />
+<p style="font-size: 13px;">
+    Для навигации по разделам используйте боковое меню системы.
+</p>
