@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace web
 {
     [Table("Roles")]
-    public class Roles
+    public class Role
     {
         [Key]
         [Column("RoleID")]
@@ -13,6 +13,6 @@ namespace web
         [Column("RoleName")]
         public string RoleName { get; set; } = string.Empty;
 
-        public List<Users> Users { get; set; } = new();
+        public virtual ICollection<User> Users { get; set; } = new List<User>();
     }
 }

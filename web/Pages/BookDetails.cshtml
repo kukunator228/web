@@ -1,0 +1,106 @@
+﻿@page
+@model web.Pages.BookDetailsModel
+@{
+    ViewData["Title"] = Model.CurrentBook?.BookName ?? "Детали книги";
+}
+
+<p><a asp-page="/Books">&lt;&lt; Назад к списку книг</a></p>
+
+@if (Model.CurrentBook == null)
+{
+    <p>Ошибка: <span class="status-null">Книга не найдена</span></p>
+}
+else
+{
+    <h2>Книга: @Model.CurrentBook.BookName</h2>
+    <hr />
+
+    <table border="1" cellpadding="10" cellspacing="0" width="100%">
+        <tr>
+            <!-- Обложка -->
+            <td width="25%" align="center" valign="middle">
+                @if (!string.IsNullOrEmpty(Model.CurrentBook.ImagePath))
+                {
+                    <img src="@Model.CurrentBook.ImagePath" width="100" alt="Обложка" />
+                }
+                else
+                {
+                    <span class="status-null">null</span>
+                }
+            </td>
+
+            <!-- Информация -->
+            <td width="75%" valign="top">
+                <p>
+                    <b>Тип фонда:</b>
+                    @if (Model.CurrentBook.BookType != null)
+                    {
+                        <span class="status-ok">[@Model.CurrentBook.BookType.BookTypeName]</span>
+                    }
+                    else
+                    {
+                        <span class="status-null">Тип #@Model.CurrentBook.BookTypeID</span>
+                    }
+                </p>
+
+                <p>
+                    <b>Авторы:</b>
+                    @if (Model.AuthorsList != null && Model.AuthorsList.Any())
+                    {
+                        <span>@string.Join(", ", Model.AuthorsList.Select(a => $"{a.AuthorSecondName} {a.AuthorFirstName} {a.AuthorPatronymic}".Trim()))</span>
+                    }
+                    else
+                    {
+                        <span class="status-null">null</span>
+                    }
+                </p>
+
+                <p><b>Цена:</b> <b>@Model.CurrentBook.Price.ToString("N2") руб.</b></p>
+
+                <p>
+                    <b>В наличии:</b>
+                    @if (Model.CurrentBook.Count.HasValue && Model.CurrentBook.Count.Value > 0)
+                    {
+                        <span>@Model.CurrentBook.Count.Value шт.</span>
+                    }
+                    else
+                    {
+                        <span class="status-null">0 шт. (нет на складе)</span>
+                    }
+                </p>
+
+                <!-- Форма добавления в корзину -->
+                @if (Model.CurrentBook.Count.HasValue && Model.CurrentBook.Count.Value > 0)
+                {
+                    <form method="post">
+                        <input type="submit" value="Добавить в корзину" />
+                    </form>
+                }
+                else
+                {
+                    <input type="submit" value="Добавить в корзину" disabled="disabled" />
+                }
+
+                @if (Model.IsAddedSuccess)
+                {
+                    <p><span class="status-ok">[Книга добавлена в корзину!]</span> <a asp-page="/Cart">Перейти в корзину</a></p>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" valign="top">
+                <b>Описание произведения:</b>
+                <p>
+                    @if (!string.IsNullOrEmpty(Model.CurrentBook.BookDesc))
+                    {
+                        @Model.CurrentBook.BookDesc
+                    }
+                    else
+                    {
+                        <span class="status-null">null</span>
+                    }
+                </p>
+            </td>
+        </tr>
+    </table>
+}

@@ -1,0 +1,28 @@
+﻿@page
+@model web.Pages.RegisterModel
+@{
+    ViewData["Title"] = "Регистрация";
+}
+
+<div style="width: 300px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; background-color: #f9f9f9;">
+    <h3>Регистрация</h3>
+    <hr />
+
+    <form method="post">
+        <div style="margin-bottom: 10px;">
+            <label>Придумайте логин:</label><br />
+            <input type="text" name="Login" required style="width: 100%;" autocomplete="off" />
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label>Придумайте пароль:</label><br />
+            <input type="password" name="Password" required style="width: 100%;" />
+        </div>
+
+        <input type="submit" value="Зарегистрироваться" style="width: 100%; padding: 5px;" />
+    </form>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <p style="color: red; margin-top: 15px; font-size: 13px;">@Model.ErrorMessage</p>
+    }
+</div>

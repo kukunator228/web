@@ -17,10 +17,16 @@ namespace web
         public string BookDesc { get; set; } = string.Empty;
 
         [Column("BookTypeID")]
-        public int BookTypeID { get; set; }
+        public int? BookTypeID { get; set; }
 
         [Column("ImagePath")]
         public string? ImagePath { get; set; }
+
+        [Column("count")]
+        public int? Count { get; set; }
+
+        [Column("price")]
+        public decimal Price { get; set; }
 
         [ForeignKey("BookTypeID")]
         public virtual BookType? BookType { get; set; }

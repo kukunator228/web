@@ -18,8 +18,8 @@ namespace web
         public DbSet<Book> Books { get; set; } = null!;
         public DbSet<Supplier> Suppliers { get; set; } = null!;
         public DbSet<BookSupply> BookSupplies { get; set; } = null!;
-        public DbSet<Roles> Roles { get; set; } = null!;
-        public DbSet<Users> Users { get; set; } = null!;
+        public DbSet<User> Users { get; set; } = default!;
+        public DbSet<Role> Roles { get; set; } = default!;
         public DbSet<BookAuthor> BookAuthors { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,0 +1,59 @@
+﻿@page
+@model web.Pages.CartModel
+@{
+    ViewData["Title"] = "Корзина покупателя";
+}
+
+<h2>Корзина покупателя</h2>
+<hr />
+
+@if (Model.CartBooks == null || !Model.CartBooks.Any())
+{
+    <p>Ваша корзина пуста. <a asp-page="/Books">Перейти в каталог книг</a></p>
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0" width="100%">
+        <thead>
+            <tr bgcolor="#f0f0f0">
+                <th align="left">Название книги</th>
+                <th width="20%">Количество</th>
+                <th width="25%">Цена единицы</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var group in Model.CartBooks)
+            {
+                <tr>
+                    <td><a href="/BookDetails?id=@group.Book.BookID"><b>@group.Book.BookName</b></a></td>
+                    <td align="center">@group.Quantity шт.</td>
+                    <td align="right">@group.Book.Price.ToString("N2") руб.</td>
+                </tr>
+            }
+            <tr style="font-weight: bold;">
+                <td colspan="2" align="right">Итого к оплате:</td>
+                <td align="right"><span class="status-ok">@Model.TotalSum.ToString("N2") руб.</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table border="0" cellpadding="5" cellspacing="0" width="100%" style="margin-top: 15px;">
+        <tr>
+            <td>
+                <form method="post" asp-page-handler="Clear">
+                    <input type="submit" value="Очистить корзину" />
+                </form>
+            </td>
+            <td align="right">
+                <form method="post" asp-page-handler="Checkout">
+                    <input type="submit" value="Оформить заказ на книги" />
+                </form>
+            </td>
+        </tr>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(Model.OrderMessage))
+{
+    <p><span class="status-ok">@Model.OrderMessage</span></p>
+}

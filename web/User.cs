@@ -1,17 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 
 namespace web
 {
     [Table("Users")]
-    public class Users
+    public class User
     {
         [Key]
         [Column("UserID")]
         public int UserID { get; set; }
 
-        [Column("UserLogin")]
-        public string UserLogin { get; set; } = string.Empty;
+        [Column("UserLogIn")]
+        public string UserLogIn { get; set; } = string.Empty;
 
         [Column("UserPassword")]
         public string UserPasssword { get; set; } = string.Empty;
@@ -20,6 +21,6 @@ namespace web
         public int RoleKey { get; set; }
 
         [ForeignKey("RoleKey")]
-        public Roles Role { get; set; } = null!;
+        public virtual Role? Role { get; set; }
     }
 }
