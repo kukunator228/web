@@ -1,0 +1,111 @@
+﻿@page
+@model web.Pages.MyOrdersModel
+@{
+    ViewData["Title"] = "Мои заказы";
+}
+
+<h2>История ваших заказов</h2>
+<hr />
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <p style="color: red; font-weight: bold;">@Model.ErrorMessage</p>
+    <p><a asp-page="/Login">Перейти на страницу входа</a></p>
+}
+else if (Model.UserOrders == null || !Model.UserOrders.Any())
+{
+    <p>Вы еще не оформили ни одного заказа. <a asp-page="/Books">Перейти к выбору книг</a></p>
+}
+else
+{
+    <table border="1" cellpadding="10" cellspacing="0" width="100%" style="border-collapse: collapse;">
+        <thead>
+            <tr bgcolor="#f0f0f0">
+                <th width="10%">Заказ</th>
+                <th width="20%">Дата и Индекс</th>
+                <th width="55%">Состав заказа (содержимое)</th>
+                <th width="15%">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model.UserOrders)
+            {
+
+                string badgeColor = "#0066cc"; // Оформлен
+                string bgColor = "#e8f4fd";
+
+                if (order.StatusKey == 2) // Комплектуется
+                {
+                    badgeColor = "#f39c12";
+                    bgColor = "#fef9e7";
+                }
+                else if (order.StatusKey == 3) // Готов к выдаче
+                {
+                    badgeColor = "#27ae60";
+                    bgColor = "#e8f8f5";
+                }
+                else if (order.StatusKey == 4) // Выдан
+                {
+                    badgeColor = "#222222";
+                    bgColor = "#f2f4f4";
+                }
+                else if (order.StatusKey == 5) // Отменен
+                {
+                    badgeColor = "#c0392b";
+                    bgColor = "#fdedec";
+                }
+
+                <tr>
+                    <td align="center" valign="top">
+                        <br /><b>№ @order.OrderID</b>
+                    </td>
+
+                    <td valign="top" style="font-size: 14px;">
+                        <b>Дата:</b> @order.OrderDate.ToString("dd.MM.yyyy HH:mm")<br />
+                        <b>Индекс:</b> @(string.IsNullOrEmpty(order.AdressIndexKey) ? "не указан" : order.AdressIndexKey.Trim())
+                    </td>
+
+                    <td valign="top">
+                        @if (order.OrderItems != null && order.OrderItems.Any())
+                        {
+                            <table border="0" cellpadding="5" cellspacing="0" width="100%">
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    if (item.Book != null)
+                                    {
+                                        <tr>
+                                            <td width="50" align="center" valign="middle" style="border: none;">
+                                                <img src="@(string.IsNullOrEmpty(item.Book.ImagePath) ? "/images/no-cover.png" : item.Book.ImagePath)"
+                                                     alt="Обложка"
+                                                     width="40"
+                                                     style="border: 1px solid #ccc; display: block;" />
+                                            </td>
+
+                                            <td valign="middle" style="border: none; font-size: 14px;">
+                                                <a href="/BookDetails?id=@item.Book.BookID">@item.Book.BookName</a>
+                                                <span style="color: #555555;">— @(string.IsNullOrEmpty(item.OrderBookQuantity) ? "1" : item.OrderBookQuantity.Trim()) шт.</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </table>
+                        }
+                        else
+                        {
+                            <i style="color: gray;">Состав заказа пуст или не подгрузился</i>
+                        }
+                    </td>
+
+                    <td align="center" valign="middle">
+                        <div style="padding: 6px 10px; border-radius: 4px; border: 1px solid @badgeColor; background-color: @bgColor; color: @badgeColor; font-size: 12px; font-weight: bold; display: inline-block; text-align: center; max-width: 120px;">
+                            @(order.OrderStatus != null ? order.OrderStatus.StatusName : $"Статус #{order.StatusKey}")
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<br />
+<p><small><a href="/Index">Назад на главную</a></small></p>

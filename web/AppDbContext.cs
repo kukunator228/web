@@ -21,6 +21,9 @@ namespace web
         public DbSet<User> Users { get; set; } = default!;
         public DbSet<Role> Roles { get; set; } = default!;
         public DbSet<BookAuthor> BookAuthors { get; set; } = null!;
+        public DbSet<BookReview> BookReviews { get; set; } = null!;
+        public DbSet<ReviewVote> ReviewVotes { get; set; } = null!;
+        public DbSet<OrderStatus> OrderStatuses { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,15 +37,36 @@ namespace web
                 entity.Property(e => e.ClientSecondName).HasColumnName("ClientSecondName");
                 entity.Property(e => e.ClientPatronymic).HasColumnName("ClientPatronymic");
                 entity.Property(e => e.ClientEmail).HasColumnName("ClientEmail");
+
+                entity.HasMany(c => c.Orders)
+                      .WithOne()
+                      .HasForeignKey(o => o.ClientKey);
             });
 
             modelBuilder.Entity<BookAuthor>(entity =>
             {
                 entity.ToTable("BookAuthors");
                 entity.HasKey(e => e.BookAuthorID);
-                entity.Property(e => e.BookAuthorID).HasColumnName("BookAuthorID");
-                entity.Property(e => e.BookID).HasColumnName("BookID");
-                entity.Property(e => e.AuthorID).HasColumnName("AuthorID");
+            });
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.ToTable("Order");
+                entity.HasKey(e => e.OrderID);
+
+                entity.HasMany(o => o.OrderItems)
+                      .WithOne()
+                      .HasForeignKey(oi => oi.OrderKey);
+
+                entity.HasOne(o => o.OrderStatus)
+                      .WithMany(s => s.Orders)
+                      .HasForeignKey(o => o.StatusKey);
+            });
+
+            modelBuilder.Entity<OrderStatus>(entity =>
+            {
+                entity.ToTable("OrderStatuses");
+                entity.HasKey(e => e.StatusID);
             });
         }
     }

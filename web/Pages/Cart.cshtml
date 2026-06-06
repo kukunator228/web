@@ -39,13 +39,29 @@ else
 
     <table border="0" cellpadding="5" cellspacing="0" width="100%" style="margin-top: 15px;">
         <tr>
-            <td>
+            <!-- КНОПКА ОЧИСТКИ КОРЗИНЫ -->
+            <td valign="bottom">
                 <form method="post" asp-page-handler="Clear">
                     <input type="submit" value="Очистить корзину" />
                 </form>
             </td>
-            <td align="right">
+
+            <!-- ВЫБОР ИНДЕКСА И ОФОРМЛЕНИЕ ЗАКАЗА -->
+            <td align="right" valign="bottom">
                 <form method="post" asp-page-handler="Checkout">
+
+                    <!-- Блок выбора индекса из базы данных OrderIndex -->
+                    <div style="margin-bottom: 10px; text-align: right;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Индекс адреса доставки:</label>
+                        <select asp-for="AddressIndex" required style="padding: 4px; width: 220px;">
+                            <option value="">-- Выберите индекс --</option>
+                            @foreach (var indexCode in Model.OrderIndicesList)
+                            {
+                                <option value="@indexCode">@indexCode</option>
+                            }
+                        </select>
+                    </div>
+
                     <input type="submit" value="Оформить заказ на книги" />
                 </form>
             </td>
@@ -55,5 +71,10 @@ else
 
 @if (!string.IsNullOrEmpty(Model.OrderMessage))
 {
-    <p><span class="status-ok">@Model.OrderMessage</span></p>
+    <!-- Подсвечиваем текст красным, если это ошибка, или зеленым, если успех -->
+    <p style="margin-top: 15px; font-weight: bold;">
+        <span style="color: @(Model.OrderMessage.Contains("[ОШИБКА]") || Model.OrderMessage.Contains("[КРИТИЧЕСКАЯ]") ? "red" : "green");">
+            @Model.OrderMessage
+        </span>
+    </p>
 }

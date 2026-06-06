@@ -10,21 +10,22 @@ namespace web
         [Column("OrderID")]
         public int OrderID { get; set; }
 
-        [Column("AdressIndexKey")]
-        public string AdressIndexKey { get; set; } = string.Empty;
-
-        [ForeignKey("AdressIndexKey")]
-        public OrderIndex OrderIndex { get; set; } = null!;
-
         [Column("OrderDate")]
         public DateTime OrderDate { get; set; }
+
+        [Column("AdressIndexKey")]
+        public string AdressIndexKey { get; set; } = string.Empty;
 
         [Column("ClientKey")]
         public int ClientKey { get; set; }
 
-        [ForeignKey("ClientKey")]
-        public Client Client { get; set; } = null!;
+        [Column("StatusKey")]
+        public int StatusKey { get; set; }
 
-        public List<OrderItem> OrderItems { get; set; } = new();
+        [ForeignKey("StatusKey")]
+        public virtual OrderStatus? OrderStatus { get; set; }
+
+        [ForeignKey("OrderKey")]
+        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 }

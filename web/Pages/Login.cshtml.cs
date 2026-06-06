@@ -31,10 +31,13 @@ namespace web.Pages
             if (user != null)
             {
                 var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserLogIn),
-                    new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "Пользователь")
-                };
+        {
+            new Claim(ClaimTypes.Name, user.UserLogIn),
+            new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "Пользователь"),
+            
+            // НОВОЕ: Намертво привязываем ID пользователя к его куки-файлу
+            new Claim("UserID", user.UserID.ToString())
+        };
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -46,5 +49,6 @@ namespace web.Pages
             ErrorMessage = "Неверный логин или пароль!";
             return Page();
         }
+
     }
 }

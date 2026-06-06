@@ -7,7 +7,6 @@ namespace web
     public class OrderItem
     {
         [Key]
-        [Column("OrderItemID")]
         public int OrderItemID { get; set; }
 
         [Column("OrderKey")]
@@ -19,13 +18,7 @@ namespace web
         [Column("OrderBookQuantity")]
         public string OrderBookQuantity { get; set; } = string.Empty;
 
-        [Column("BookTypekey")]
-        public int BookTypekey { get; set; }
-
-        [ForeignKey("BookTypekey")]
-        public BookType BookType { get; set; } = null!;
-
-        [ForeignKey("OrderKey")]
-        public Order Order { get; set; } = null!;
+        [ForeignKey("BookKey")]
+        public virtual Book? Book { get; set; }
     }
 }

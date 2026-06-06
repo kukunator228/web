@@ -6,7 +6,6 @@
     <title>@ViewData["Title"] - ИС </title>
 
     <style>
-
         body {
             background-color: #ffffff;
             color: #000000;
@@ -46,9 +45,23 @@
                 [ <a asp-page="/Index">Главная</a> ] &nbsp;
                 [ <a asp-page="/Authors">Авторы</a> ] &nbsp;
                 [ <a asp-page="/Books">Книги</a> ] &nbsp;
+
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <span>[ <a asp-page="/Cart">Корзина</a> ] &nbsp;</span>
+                    <span>[ <a asp-page="/MyOrders">Мои заказы</a> ] &nbsp;</span>
+                }
             </td>
+
             <td align="right">
-                <a asp-page="/Login">Войти</a> | <a asp-page="/Register">Регистрация</a>
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <span>Привет, <b>@User.Identity.Name</b>! | <a asp-page="/Logout">Выйти</a></span>
+                }
+                else
+                {
+                    <span><a asp-page="/Login">Войти</a> | <a asp-page="/Register">Регистрация</a></span>
+                }
             </td>
         </tr>
     </table>
@@ -62,14 +75,26 @@
                     <li><a asp-page="/Index">Каталог</a></li>
                     <li><a asp-page="/Authors">Авторы</a></li>
                     <li><a asp-page="/Books">Книги</a></li>
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <li><a asp-page="/Cart">Корзина</a></li>
+                        <li><a asp-page="/MyOrders">Мои заказы</a></li>
+                    }
                 </ul>
 
                 <hr />
 
                 <b>Статус:</b>
                 <p style="font-size: 12px; margin-bottom: 0;">
-                    Юзер: <span class="status-null">null</span><br />
-                    БД: <span class="status-ok">[OK]</span>
+                    Юзер:
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <span class="status-ok">@User.Identity.Name</span>
+                    }
+                    else
+                    {
+                        <span class="status-null">null</span>
+                    }
                 </p>
             </td>
 
@@ -81,7 +106,7 @@
 
     <hr />
     <p align="center" style="font-size: 12px; color: #555555;">
-        &copy; 2026 ИС «Ёлочный».
+        &copy; 2026 «Ёлочный».
     </p>
 
     @await RenderSectionAsync("Scripts", required: false)

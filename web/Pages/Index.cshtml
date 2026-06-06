@@ -4,45 +4,29 @@
     ViewData["Title"] = "Главная";
 }
 
-<h3>Панель ИС «Ёлочный»</h3>
-<p>Добро пожаловать</p>
+<h3>«Ёлочный»</h3>
+<p>Добро пожаловать.</p>
 <hr />
 
-<h4>Состояние фонда литературы</h4>
-<table border="1" cellpadding="10" cellspacing="0" width="100%" style="text-align: center;">
-    <tr bgcolor="#f0f0f0">
-        <th width="33%">Текстовые издания (Тип #1)</th>
-        <th width="33%">Аудиоматериалы (Тип #2)</th>
-        <th width="34%">Зарегистрировано авторов</th>
-    </tr>
-    <tr>
-        <td style="font-size: 20px; font-weight: bold;">@Model.TotalBooksCount</td>
-        <td style="font-size: 20px; font-weight: bold;">@Model.TotalAudioCount</td>
-        <td style="font-size: 20px; font-weight: bold; color: #0000ee;">@Model.TotalAuthorsCount</td>
-    </tr>
-</table>
+<h4>Высокий рейтинг читателей</h4>
 
-<br />
-<br />
-
-<h4>Новые поступления на склад (Последние добавленные)</h4>
-
-@if (Model.RecentBooks == null || !Model.RecentBooks.Any())
+@if (Model.PopularBooks == null || !Model.PopularBooks.Any())
 {
-    <p><i>В базе данных пока нет записей о книгах.</i></p>
+    <p><i>В базе данных пока нет книг или оценок для формирования рейтинга.</i></p>
 }
 else
 {
-    <table border="1" cellpadding="6" cellspacing="0" width="100%">
+    <table border="1" cellpadding="8" cellspacing="0" width="100%">
         <thead>
             <tr bgcolor="#f0f0f0">
-                <th width="12%">Обложка</th>
-                <th width="48%">Название номенклатуры</th>
-                <th width="40%">Формат</th>
+                <th width="10%">Обложка</th>
+                <th width="45%">Название номенклатуры</th>
+                <th width="20%">Тип</th>
+                <th width="25%">Средняя оценка / Отзывы</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var book in Model.RecentBooks)
+            @foreach (var book in Model.PopularBooks)
             {
                 <tr>
                     <td align="center" valign="middle">
@@ -57,21 +41,38 @@ else
                     </td>
 
                     <td>
-                        <b>@book.BookName</b>
+                        <a href="/BookDetails?id=@book.BookID" style="font-weight: bold; color: #0066cc; text-decoration: none;">
+                            @book.BookName
+                        </a>
                     </td>
 
-                    <td align="center">
-                        @if (book.BookTypeID == 1)
+                    <td align="center" style="font-size: 13px;">
+                        @if (book.BookType != null)
                         {
-                            <span>Печатное издание</span>
-                        }
-                        else if (book.BookTypeID == 2)
-                        {
-                            <b>Аудиокнига</b>
+                            <span style="color: #008000; font-weight: bold;">[@book.BookType.BookTypeName]</span>
                         }
                         else
                         {
-                            <span>Указан тип: @book.BookTypeID</span>
+                            <span style="color: #666666;">Не указан</span>
+                        }
+                    </td>
+
+                    <td align="center">
+                        @if (book.BookReviews != null && book.BookReviews.Any())
+                        {
+                            var avg = book.BookReviews.Average(r => r.BookScore);
+                            int fullStars = (int)Math.Round(avg);
+
+                            <div style="color: #f39c12; font-weight: bold; font-size: 14px;">
+                                @Html.Raw(new string('★', fullStars))@Html.Raw(new string('☆', 5 - fullStars))
+                            </div>
+                            <small style="color: #555555;">
+                                <b>@avg.ToString("F1")</b> из 5 (Всего отзывов: @book.BookReviews.Count)
+                            </small>
+                        }
+                        else
+                        {
+                            <span style="color: #999999; font-size: 12px; font-style: italic;">Оценок ещё нет</span>
                         }
                     </td>
                 </tr>
@@ -81,7 +82,51 @@ else
 }
 
 <br />
+<br />
+
+<h4>Самые полезные отзывы</h4>
+
+@if (Model.PopularReviews == null || !Model.PopularReviews.Any())
+{
+    <p><i>Пользователи ещё не оценивали чужие отзывы.</i></p>
+}
+else
+{
+    @foreach (var review in Model.PopularReviews)
+    {
+        <table border="1" cellpadding="8" cellspacing="0" width="100%" style="margin-bottom: 12px; background-color: #fafafa; border-left: 4px solid green;">
+            <tr>
+                <td width="10%" align="center" bgcolor="#eaf2f8" style="font-size: 15px; font-weight: bold; color: green;">
+                    Полезность<br />
+                    <span style="font-size: 18px;">+@review.RatingSum</span>
+                </td>
+
+                <td width="90%" valign="top">
+                    <div style="font-size: 12px; color: #555555; margin-bottom: 5px;">
+                        Книга:
+                        @if (review.Book != null)
+                        {
+                            <a href="/BookDetails?id=@review.BookKey" style="font-weight: bold; color: #0066cc;">@review.Book.BookName</a>
+                        }
+                        else
+                        {
+                            <b>Удаленная книга</b>
+                        }
+                        | Читатель: <b>@(review.User != null ? review.User.UserLogIn : "Аноним")</b>
+                        | Оценка: <span style="color: #f39c12; font-weight: bold;">@Html.Raw(new string('★', review.BookScore)) (@review.BookScore/5)</span>
+                    </div>
+
+                    <p style="margin: 0; font-style: italic; white-space: pre-line; color: #333333;">
+                        "@review.ReviewText"
+                    </p>
+                </td>
+            </tr>
+        </table>
+    }
+}
+
+<br />
 <hr />
 <p style="font-size: 13px;">
-    Для навигации по разделам используйте боковое меню системы.
+    Для навигации по остальным разделам и складскому учету используйте боковое меню.
 </p>

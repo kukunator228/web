@@ -30,5 +30,7 @@ namespace web
 
         [ForeignKey("BookTypeID")]
         public virtual BookType? BookType { get; set; }
+
+        public virtual ICollection<BookReview> BookReviews { get; set; } = new List<BookReview>();
     }
 }

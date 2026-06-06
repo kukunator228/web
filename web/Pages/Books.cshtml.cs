@@ -15,7 +15,6 @@ namespace web.Pages
 
         public IList<Book> Books { get; set; } = default!;
         public IList<BookAuthor> BookAuthorsConnections { get; set; } = default!;
-
         public IList<BookType> BookTypes { get; set; } = default!;
 
         [BindProperty(SupportsGet = true)]
@@ -35,6 +34,7 @@ namespace web.Pages
             {
                 var booksQuery = _context.Books
                     .Include(b => b.BookType)
+                    .Include(b => b.BookReviews)
                     .AsQueryable();
 
                 if (SelectedTypeId.HasValue && SelectedTypeId.Value > 0)

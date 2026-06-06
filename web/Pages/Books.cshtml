@@ -4,7 +4,7 @@
     ViewData["Title"] = "Общий книжный фонд";
 }
 
-<h3>Книжный фонд и номенклатура склада</h3>
+<h3>Книжный фонд</h3>
 <hr />
 
 <form method="get" style="margin-bottom: 15px;">
@@ -88,6 +88,25 @@ else
                         <a href="/BookDetails?id=@book.BookID" style="font-weight: bold; color: #0066cc; text-decoration: none;">
                             @book.BookName
                         </a>
+
+                        <div style="margin-top: 5px; font-size: 13px;">
+                            @if (book.BookReviews != null && book.BookReviews.Any())
+                            {
+                                var avg = book.BookReviews.Average(r => r.BookScore);
+                                int fullStars = (int)Math.Round(avg);
+
+                                <span style="color: #f39c12; font-weight: bold;" title="Средняя оценка: @avg.ToString("F1")">
+                                    @Html.Raw(new string('★', fullStars))@Html.Raw(new string('☆', 5 - fullStars))
+                                </span>
+                                <span style="color: #666666; font-size: 12px; margin-left: 3px;">
+                                    (@avg.ToString("F1") / отзывов: @book.BookReviews.Count)
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="color: #999999; font-size: 12px; font-style: italic;">Нет отзывов</span>
+                            }
+                        </div>
                     </td>
 
                     <td align="center" valign="top" style="font-size: 13px;">
@@ -141,4 +160,4 @@ else
     </table>
 }
 
-<p><small><a href="/Index"> Назад к главной </a></small></p>
+<p><small><a href="/Index">Назад к главной</a></small></p>

@@ -13,11 +13,29 @@
 else
 {
     <h2>Книга: @Model.CurrentBook.BookName</h2>
+
+    <div style="font-size: 16px; margin-top: -5px; margin-bottom: 15px;">
+        <b>Рейтинг книги:</b>
+        @if (Model.ReviewsList != null && Model.ReviewsList.Any())
+        {
+            int fullStars = (int)Math.Round(Model.AverageScore);
+            <span style="color: #f39c12; font-weight: bold;">
+                @Html.Raw(new string('★', fullStars))@Html.Raw(new string('☆', 5 - fullStars))
+                <span style="color: #555555; font-size: 14px; font-weight: normal;">
+                    (@Model.AverageScore.ToString("F1") из 5 на основе @Model.ReviewsList.Count отзов.)
+                </span>
+            </span>
+        }
+        else
+        {
+            <i style="color: #777777; font-size: 14px;">Еще нет оценок (будьте первым!)</i>
+        }
+    </div>
+
     <hr />
 
     <table border="1" cellpadding="10" cellspacing="0" width="100%">
         <tr>
-            <!-- Обложка -->
             <td width="25%" align="center" valign="middle">
                 @if (!string.IsNullOrEmpty(Model.CurrentBook.ImagePath))
                 {
@@ -29,10 +47,9 @@ else
                 }
             </td>
 
-            <!-- Информация -->
             <td width="75%" valign="top">
                 <p>
-                    <b>Тип фонда:</b>
+                    <b>Тип:</b>
                     @if (Model.CurrentBook.BookType != null)
                     {
                         <span class="status-ok">[@Model.CurrentBook.BookType.BookTypeName]</span>
@@ -69,7 +86,6 @@ else
                     }
                 </p>
 
-                <!-- Форма добавления в корзину -->
                 @if (Model.CurrentBook.Count.HasValue && Model.CurrentBook.Count.Value > 0)
                 {
                     <form method="post">
@@ -103,4 +119,80 @@ else
             </td>
         </tr>
     </table>
+
+    <br />
+    <h3>Рецензии и отзывы читателей</h3>
+    <hr />
+
+    @if (Model.ReviewsList == null || !Model.ReviewsList.Any())
+    {
+        <p><i>На эту книгу ещё никто не оставил отзывов. Будьте первым!</i></p>
+    }
+    else
+    {
+        @foreach (var review in Model.ReviewsList)
+        {
+            <table border="1" cellpadding="8" cellspacing="0" width="100%" style="margin-bottom: 10px; background-color: #fafafa;">
+                <tr>
+                    <td width="8%" align="center" valign="middle" bgcolor="#f0f0f0" style="font-family: monospace;">
+
+                        <form method="post" asp-page-handler="Vote" asp-route-id="@Model.CurrentBook.BookID" asp-route-reviewId="@review.ReviewID" asp-route-voteValue="1" style="margin:0;">
+                            <input type="submit" value="▲" title="Полезный отзыв" style="padding: 1px 5px; font-size: 11px; cursor: pointer;" />
+                        </form>
+
+                        <div style="margin: 4px 0; font-weight: bold; font-size: 14px; color: @(review.RatingSum >= 0 ? "green" : "red");">
+                            @(review.RatingSum > 0 ? "+" : "")@review.RatingSum
+                        </div>
+
+                        <form method="post" asp-page-handler="Vote" asp-route-id="@Model.CurrentBook.BookID" asp-route-reviewId="@review.ReviewID" asp-route-voteValue="-1" style="margin:0;">
+                            <input type="submit" value="▼" title="Бесполезный отзыв" style="padding: 1px 5px; font-size: 11px; cursor: pointer;" />
+                        </form>
+
+                    </td>
+
+                    <td width="92%" valign="top">
+                        <div style="font-size: 12px; color: #555555; margin-bottom: 5px;">
+                            Отправитель: <b>@(review.User != null ? review.User.UserLogIn : "Аноним")</b> |
+                            Дата: <i>@review.ReviewDate.ToString("dd.MM.yyyy HH:mm")</i> |
+                            Оценка: <b style="color: #f39c12;">@Html.Raw(new string('★', review.BookScore))@Html.Raw(new string('☆', 5 - review.BookScore)) (@review.BookScore/5)</b>
+                        </div>
+                        <p style="margin: 0; white-space: pre-line;">@review.ReviewText</p>
+                    </td>
+                </tr>
+            </table>
+        }
+    }
+
+    <br />
+    <h4>Оставить свой отзыв:</h4>
+
+    @if (!string.IsNullOrEmpty(Model.ReviewErrorMessage))
+    {
+        <p style="color: red; font-weight: bold;">@Model.ReviewErrorMessage</p>
+    }
+
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <form method="post" asp-page-handler="AddReview" asp-route-id="@Model.CurrentBook.BookID">
+
+            <div style="margin-bottom: 8px;">
+                <label for="reviewScore"><b>Ваша оценка произведению:</b></label>
+                <select id="reviewScore" asp-for="NewReviewScore" style="padding: 3px 10px; font-weight: bold;">
+                    <option value="5">5 ★★★★★ (Отлично)</option>
+                    <option value="4">4 ★★★★☆ (Хорошо)</option>
+                    <option value="3">3 ★★★☆☆ (Удовлетворительно)</option>
+                    <option value="2">2 ★★☆☆☆ (Плохо)</option>
+                    <option value="1">1 ★☆☆☆☆ (Ужасно)</option>
+                </select>
+            </div>
+
+            <textarea asp-for="NewReviewText" rows="4" style="width: 100%; font-family: 'Times New Roman'; padding: 5px;" required placeholder="Напишите, что вы думаете об этом произведении..."></textarea>
+            <br />
+            <input type="submit" value="Опубликовать отзыв" style="margin-top: 5px;" />
+        </form>
+    }
+    else
+    {
+        <p><span class="status-null">[Авторизация]:</span> Чтобы написать отзыв и оценивать другие рецензии, пожалуйста, <a asp-page="/Login">войдите в свой аккаунт</a>.</p>
+    }
 }

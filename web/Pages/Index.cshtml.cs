@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using web;
 
 namespace web.Pages
 {
@@ -13,28 +12,43 @@ namespace web.Pages
             _context = context;
         }
 
-        public int TotalBooksCount { get; set; }
-        public int TotalAudioCount { get; set; }
-        public int TotalAuthorsCount { get; set; }
-
-        public IList<Book> RecentBooks { get; set; } = default!;
+        public List<Book> PopularBooks { get; set; } = new List<Book>();
+        public List<BookReview> PopularReviews { get; set; } = new List<BookReview>();
 
         public async Task OnGetAsync()
         {
             if (_context.Books != null)
             {
-                TotalBooksCount = await _context.Books.CountAsync(b => b.BookTypeID == 1);
-                TotalAudioCount = await _context.Books.CountAsync(b => b.BookTypeID == 2);
-
-                RecentBooks = await _context.Books
-                    .OrderByDescending(b => b.BookID)
-                    .Take(5)
+                var allBooks = await _context.Books
+                    .Include(b => b.BookType)
+                    .Include(b => b.BookReviews)
                     .ToListAsync();
+
+                PopularBooks = allBooks
+                    .Where(b => b.BookReviews != null && b.BookReviews.Any())
+                    .OrderByDescending(b => b.BookReviews.Average(r => r.BookScore))
+                    .ThenByDescending(b => b.BookReviews.Count)
+                    .Take(5)
+                    .ToList();
+
+                if (PopularBooks.Count < 5)
+                {
+                    var extraBooks = allBooks
+                        .Where(b => !PopularBooks.Contains(b))
+                        .Take(5 - PopularBooks.Count);
+                    PopularBooks.AddRange(extraBooks);
+                }
             }
 
-            if (_context.Authors != null)
+            if (_context.BookReviews != null)
             {
-                TotalAuthorsCount = await _context.Authors.CountAsync();
+                PopularReviews = await _context.BookReviews
+                    .Include(r => r.User)
+                    .Include(r => r.Book)
+                    .Where(r => r.RatingSum > 0)
+                    .OrderByDescending(r => r.RatingSum)
+                    .Take(3)
+                    .ToListAsync();
             }
         }
     }
