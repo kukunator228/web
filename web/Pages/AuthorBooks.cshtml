@@ -4,99 +4,152 @@
     ViewData["Title"] = "Книги автора";
 }
 
-<h3>Все произведения автора: @Model.AuthorInfo.AuthorSecondName @Model.AuthorInfo.AuthorFirstName @Model.AuthorInfo.AuthorPatronymic</h3>
-<hr />
+<div style="margin-top: 10px;">
 
-<form method="get" style="margin-bottom: 15px;">
-    <table border="0" cellpadding="3" cellspacing="0">
-        <tr>
-            <td>Поиск по названию:</td>
-            <td>
-                <input type="text" name="SearchString" value="@Model.SearchString" style="width: 250px;" autocomplete="off" />
-            </td>
-            <td>
-                <input type="submit" value="Найти" />
-            </td>
-            @if (!string.IsNullOrEmpty(Model.SearchString))
-            {
-                <td>
-                    <small><a href="/AuthorBooks/@Model.AuthorInfo.AuthorID" style="margin-left: 10px; color: #555555;">[Сбросить]</a></small>
-                </td>
-            }
-        </tr>
-    </table>
-</form>
+    <!-- ВЕРХНИЙ БЛОК: СЕТКА ДЛЯ ПОРТРЕТА И БИОГРАФИИ -->
+    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 40px; margin-bottom: 35px;">
 
-@if (Model.AuthorBookConnections == null || !Model.AuthorBookConnections.Any())
-{
-    @if (!string.IsNullOrEmpty(Model.SearchString))
-    {
-        <p style="color: #b22222;">У данного автора не найдено произведений по запросу "<b>@Model.SearchString</b>". <a href="/AuthorBooks/@Model.AuthorInfo.AuthorID">Показать все труды</a></p>
+        <!-- ЛЕВАЯ КОЛОНКА: Большой портрет -->
+        <div>
+            <div style="width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 1px solid transparent; background-color: transparent; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
+                @if (!string.IsNullOrEmpty(Model.AuthorInfo.ImagePath))
+                {
+                    <img src="@Model.AuthorInfo.ImagePath" alt="Портрет автора" style="width: 100%; height: 100%; object-fit: cover;" />
+                }
+                else
+                {
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #7a7c56; font-weight: bold;">
+                        [НЕТ ФОТО]
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА: ФИО, Биография, ПОИСК и ЛЕНТА КНИГ -->
+        <div style="display: flex; flex-direction: column; justify-content: flex-start; min-width: 0;">
+
+            <!-- ФИО АВТОРА -->
+            <h2 style="margin: 0 0 15px 0; font-size: 46px; color: #4c60d1; font-weight: bold; letter-spacing: -0.5px;">
+                @Model.AuthorInfo.AuthorSecondName @Model.AuthorInfo.AuthorFirstName @Model.AuthorInfo.AuthorPatronymic
+            </h2>
+            <hr style="width: 100%; margin: 0 0 15px 0; border: 0; border-top: 1px solid transparent;" />
+
+            <!-- БИОГРАФИЯ -->
+            <p style="margin: 0 0 30px 0; font-size: 14px; color: grey; line-height: 1.6; white-space: pre-line;">
+                @if (!string.IsNullOrEmpty(Model.AuthorInfo.AuthorBio))
+                {
+                    @Model.AuthorInfo.AuthorBio
+                }
+                else
+                {
+                    <span style="color: grey; font-style: italic;">Биография еще не добавлена.</span>
+                }
+            </p>
+
+            <!-- 1. ПОЛЕ ПОИСКА (ТЕПЕРЬ НАД ЛЕНТОЙ КНИГ) -->
+            <form method="get" style="margin-bottom: 25px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="position: relative; display: inline-block; width: 300px;">
+                        <input type="text"
+                               name="SearchString"
+                               value="@Model.SearchString"
+                               placeholder="Поиск по произведениям..."
+                               style="width: 100%; padding: 7px 35px 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 2px solid #b0b288; border-radius: 20px; box-sizing: border-box; outline: none;"
+                               autocomplete="off" />
+
+                        <button type="submit"
+                                style="position: absolute; right: 3px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 6px 10px; display: flex; align-items: center; justify-content: center; color: #4c60d1;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.SearchString))
+                    {
+                        <a href="/AuthorBooks/@Model.AuthorInfo.AuthorID" style="color: #4c60d1; text-decoration: none; font-size: 13px; font-weight: bold;">[Показать все]</a>
+                    }
+                </div>
+            </form>
+
+            <!-- КНИГИ АВТОРА -->
+            <div style="margin-top: 10px;">
+                <h4 style="margin: 0 0 15px 0; font-size: 16px; font-weight: bold; color: #000000;">Книги автора:</h4>
+
+                @if (Model.AuthorBookConnections == null || !Model.AuthorBookConnections.Any())
+                {
+                    @if (!string.IsNullOrEmpty(Model.SearchString))
+                    {
+                        <p style="color: gray; margin: 0; font-size: 13px;">В нашем каталоге нет "<b>@Model.SearchString</b>". Но вы можете заполнить заявку и мы постараемся найти желаемую книгу! <a href="/AuthorBooks/@Model.AuthorInfo.AuthorID" style="color: #4c60d1;">Сбросить</a></p>
+                    }
+                    else
+                    {
+                        <p style="color: grey; margin: 0; font-style: italic; font-size: 13px;">У данного автора пока нет зарегистрированных произведений.</p>
+                    }
+                }
+                else
+                {
+                    <!-- Обертка слайдера для абсолютного позиционирования стрелок -->
+                    <div style="position: relative; width: 100%; display: flex; align-items: center;">
+
+                        <!-- ЛЕВАЯ СТРЕЛКА (Полупрозрачный синий фон, черная стрелка) -->
+                        <button onclick="scrollSlider(-220)"
+                                onmouseover="this.style.opacity='1';"
+                                onmouseout="this.style.opacity='0.6';"
+                                style="position: absolute; left: -15px; z-index: 10; width: 34px; height: 34px; border-radius: 50%; border: none; background-color: rgba(76, 96, 209, 0.6); color: #000000; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.15); opacity: 0.6; transition: opacity 0.2s ease; outline: none;">
+                            &lt;
+                        </button>
+
+                        <!-- СКРОЛЛ-КОНТЕЙНЕР ДЛЯ КАРТОЧЕК -->
+                        <div id="booksSlider" style="display: flex; gap: 15px; overflow-x: hidden; scroll-behavior: smooth; padding: 5px 0; width: 100%; align-items: flex-start;">
+                            @foreach (var item in Model.AuthorBookConnections)
+                            {
+                                <div style="flex: 0 0 110px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+
+                                    <!-- Обложка книги -->
+                                    <a href="/BookDetails?id=@item.Book.BookID" style="width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 1px solid transparent; background-color: #f9f9f9; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-decoration: none;">
+                                        @if (!string.IsNullOrEmpty(item.Book.ImagePath))
+                                        {
+                                            <img src="@item.Book.ImagePath" alt="Обложка" style="width: 100%; height: 100%; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size: 10px; color: #7a7c56; text-transform: uppercase;">[null]</span>
+                                        }
+                                    </a>
+
+                                    <!-- Название -->
+                                    <a href="/BookDetails?id=@item.Book.BookID" style="font-size: 11px; font-weight: bold; color: #000000; text-decoration: none; display: block; line-height: 1.3;" onmouseover="this.style.color='#4c60d1'" onmouseout="this.style.color='#000000'">
+                                        @item.Book.BookName
+                                    </a>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- ПРАВАЯ СТРЕЛКА (Полупрозрачный синий фон, черная стрелка) -->
+                        <button onclick="scrollSlider(220)"
+                                onmouseover="this.style.opacity='1';"
+                                onmouseout="this.style.opacity='0.6';"
+                                style="position: absolute; right: -15px; z-index: 10; width: 34px; height: 34px; border-radius: 50%; border: none; background-color: rgba(76, 96, 209, 0.6); color: #000000; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.15); opacity: 0.6; transition: opacity 0.2s ease; outline: none;">
+                            &gt;
+                        </button>
+
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Скрипт для плавной перемотки ленты кнопками -->
+<script>
+    function scrollSlider(amount) {
+        const slider = document.getElementById('booksSlider');
+        if (slider) {
+            slider.scrollLeft += amount;
+        }
     }
-    else
-    {
-        <p>У данного автора пока нет зарегистрированных произведений в системе Склад.</p>
-    }
-}
-else
-{
-    <table border="1" cellpadding="8" cellspacing="0" width="100%">
-        <thead>
-            <tr bgcolor="#f0f0f0">
-                <th width="12%">Обложка</th>
-                <th width="38%">Название произведения</th>
-                <th width="15%">Тип книги</th>
-                <th width="35%">Описание</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.AuthorBookConnections)
-            {
-                <tr>
-                    <td align="center" valign="middle">
-                        @if (!string.IsNullOrEmpty(item.Book.ImagePath))
-                        {
-                            <img src="@item.Book.ImagePath" width="70" style="border: 1px solid #000000;" alt="Обложка" />
-                        }
-                        else
-                        {
-                            <span style="font-size: 11px; color: #555555; font-family: monospace;">null</span>
-                        }
-                    </td>
-
-                    <td valign="top" style="font-size: 15px;">
-                        <b>@item.Book.BookName</b>
-                    </td>
-
-                    <td align="center" valign="top" style="font-size: 13px;">
-                        @if (item.Book.BookTypeID == 1)
-                        {
-                            <span>[Текст]</span>
-                        }
-                        else if (item.Book.BookTypeID == 2)
-                        {
-                            <b>[Аудио]</b>
-                        }
-                        else
-                        {
-                            <span>Тип: @item.Book.BookTypeID</span>
-                        }
-                    </td>
-
-                    <td valign="top" style="font-size: 13px; color: #222222; line-height: 1.4;">
-                        @if (!string.IsNullOrEmpty(item.Book.BookDesc))
-                        {
-                            @item.Book.BookDesc
-                        }
-                        else
-                        {
-                            <span style="color: #b22222; font-family: monospace; font-size: 12px;">null</span>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-<p><small><a href="/Authors">&lt;&lt; Вернуться к реестру авторов</a></small></p>
+</script>
