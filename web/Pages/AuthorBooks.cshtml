@@ -1,4 +1,4 @@
-﻿@page "{authorId:int}"
+﻿@page "{AuthorId:int}"
 @model web.Pages.AuthorBooksModel
 @{
     ViewData["Title"] = "Книги автора";
@@ -11,7 +11,7 @@
 
         <!-- ЛЕВАЯ КОЛОНКА: Большой портрет -->
         <div>
-            <div style="width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 1px solid transparent; background-color: transparent; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
+            <div style="width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 0px solid transparent; background-color: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
                 @if (!string.IsNullOrEmpty(Model.AuthorInfo.ImagePath))
                 {
                     <img src="@Model.AuthorInfo.ImagePath" alt="Портрет автора" style="width: 100%; height: 100%; object-fit: cover;" />
@@ -29,13 +29,11 @@
         <div style="display: flex; flex-direction: column; justify-content: flex-start; min-width: 0;">
 
             <!-- ФИО АВТОРА -->
-            <h2 style="margin: 0 0 15px 0; font-size: 46px; color: #4c60d1; font-weight: bold; letter-spacing: -0.5px;">
+            <h2 style="margin: 0 0 5px 0; font-size: 46px; color: #4c60d1; font-weight: bold; letter-spacing: -0.5px;">
                 @Model.AuthorInfo.AuthorSecondName @Model.AuthorInfo.AuthorFirstName @Model.AuthorInfo.AuthorPatronymic
             </h2>
-            <hr style="width: 100%; margin: 0 0 15px 0; border: 0; border-top: 1px solid transparent;" />
 
-            <!-- БИОГРАФИЯ -->
-            <p style="margin: 0 0 30px 0; font-size: 14px; color: grey; line-height: 1.6; white-space: pre-line;">
+            <p style="margin: 0 0 5px 0; font-size: 14px; color: grey; line-height: 1.6; white-space: pre-line;">
                 @if (!string.IsNullOrEmpty(Model.AuthorInfo.AuthorBio))
                 {
                     @Model.AuthorInfo.AuthorBio
@@ -54,7 +52,7 @@
                                name="SearchString"
                                value="@Model.SearchString"
                                placeholder="Поиск по произведениям..."
-                               style="width: 100%; padding: 7px 35px 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 2px solid #b0b288; border-radius: 20px; box-sizing: border-box; outline: none;"
+                               style="width: 100%; padding: 7px 35px 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 1px solid #b0b288; border-radius: 20px; box-sizing: border-box; outline: none;"
                                autocomplete="off" />
 
                         <button type="submit"
@@ -68,7 +66,7 @@
 
                     @if (!string.IsNullOrEmpty(Model.SearchString))
                     {
-                        <a href="/AuthorBooks/@Model.AuthorInfo.AuthorID" style="color: #4c60d1; text-decoration: none; font-size: 13px; font-weight: bold;">[Показать все]</a>
+                        <a href="/AuthorBooks/@Model.AuthorInfo.AuthorId" style="color: #4c60d1; text-decoration: none; font-size: 13px; font-weight: bold;">[Показать все]</a>
                     }
                 </div>
             </form>
@@ -81,11 +79,11 @@
                 {
                     @if (!string.IsNullOrEmpty(Model.SearchString))
                     {
-                        <p style="color: gray; margin: 0; font-size: 13px;">В нашем каталоге нет "<b>@Model.SearchString</b>". Но вы можете заполнить заявку и мы постараемся найти желаемую книгу! <a href="/AuthorBooks/@Model.AuthorInfo.AuthorID" style="color: #4c60d1;">Сбросить</a></p>
+                        <p style="color: gray; margin: 0; font-size: 13px;">В нашем каталоге нет "<b>@Model.SearchString</b>". Но вы можете заполнить заявку и мы постараемся найти желаемую книгу! <a href="/AuthorBooks/@Model.AuthorInfo.AuthorId" style="color: #4c60d1;">Сбросить</a></p>
                     }
                     else
                     {
-                        <p style="color: grey; margin: 0; font-style: italic; font-size: 13px;">У данного автора пока нет зарегистрированных произведений.</p>
+                        <p style="color: grey; margin: 0; font-style: italic; font-size: 13px;">У нас пока нет книг этого автора... Но скоро будут!</p>
                     }
                 }
                 else
@@ -108,7 +106,7 @@
                                 <div style="flex: 0 0 110px; display: flex; flex-direction: column; align-items: center; text-align: center;">
 
                                     <!-- Обложка книги -->
-                                    <a href="/BookDetails?id=@item.Book.BookID" style="width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 1px solid transparent; background-color: #f9f9f9; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-decoration: none;">
+                                    <a href="/BookDetails?id=@item.Book.BookId" style="width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 1px solid transparent; background-color: #f9f9f9; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-decoration: none;">
                                         @if (!string.IsNullOrEmpty(item.Book.ImagePath))
                                         {
                                             <img src="@item.Book.ImagePath" alt="Обложка" style="width: 100%; height: 100%; object-fit: cover;" />
@@ -120,7 +118,7 @@
                                     </a>
 
                                     <!-- Название -->
-                                    <a href="/BookDetails?id=@item.Book.BookID" style="font-size: 11px; font-weight: bold; color: #000000; text-decoration: none; display: block; line-height: 1.3;" onmouseover="this.style.color='#4c60d1'" onmouseout="this.style.color='#000000'">
+                                    <a href="/BookDetails?id=@item.Book.BookId" style="font-size: 11px; font-weight: bold; color: #000000; text-decoration: none; display: block; line-height: 1.3;" onmouseover="this.style.color='#4c60d1'" onmouseout="this.style.color='#000000'">
                                         @item.Book.BookName
                                     </a>
                                 </div>

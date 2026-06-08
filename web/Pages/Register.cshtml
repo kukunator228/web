@@ -4,25 +4,66 @@
     ViewData["Title"] = "Регистрация";
 }
 
-<div style="width: 300px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; background-color: #f9f9f9;">
-    <h3>Регистрация</h3>
-    <hr />
-
-    <form method="post">
-        <div style="margin-bottom: 10px;">
-            <label>Придумайте логин:</label><br />
-            <input type="text" name="Login" required style="width: 100%;" autocomplete="off" />
-        </div>
-        <div style="margin-bottom: 15px;">
-            <label>Придумайте пароль:</label><br />
-            <input type="password" name="Password" required style="width: 100%;" />
-        </div>
-
-        <input type="submit" value="Зарегистрироваться" style="width: 100%; padding: 5px;" />
-    </form>
-
-    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-        <p style="color: red; margin-top: 15px; font-size: 13px;">@Model.ErrorMessage</p>
+<style>
+    body {
+        background-image: url('/images/graphics/patternbg.png');
+        background-repeat: repeat;
+        background-position: top left;
+        background-attachment: fixed;
     }
+</style>
+
+<div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; padding: 20px;">
+    <div style="width: 100%; max-width: 450px; background-color: white; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 40px;">
+
+        <!-- ЗАГОЛОВОК (как ФИО автора) -->
+        <h2 style="margin: 0 0 30px 0; font-size: 46px; color: #4c60d1; font-weight: bold; letter-spacing: -0.5px; text-align: center;">
+            Регистрация
+        </h2>
+
+        <form method="post">
+            <!-- ЛОГИН -->
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #000000;">ЛОГИН</label>
+                <input type="text"
+                       name="Login"
+                       required
+                       autocomplete="off"
+                       style="width: 100%; padding: 12px 15px; font-size: 14px; border: 2px solid #4c60d1; border-radius: 30px; box-sizing: border-box; outline: none; transition: 0.3s; font-family: 'Consolas', monospace;"
+                       onfocus="this.style.borderColor='#7a8ce5'; this.style.boxShadow='0 0 5px rgba(76,96,209,0.3)'"
+                       onblur="this.style.borderColor='#4c60d1'; this.style.boxShadow='none'" />
+            </div>
+
+            <!-- ПАРОЛЬ -->
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #000000;">ПАРОЛЬ</label>
+                <input type="password"
+                       name="Password"
+                       required
+                       style="width: 100%; padding: 12px 15px; font-size: 14px; border: 2px solid #4c60d1; border-radius: 30px; box-sizing: border-box; outline: none; transition: 0.3s; font-family: 'Consolas', monospace;"
+                       onfocus="this.style.borderColor='#7a8ce5'; this.style.boxShadow='0 0 5px rgba(76,96,209,0.3)'"
+                       onblur="this.style.borderColor='#4c60d1'; this.style.boxShadow='none'" />
+            </div>
+
+            <!-- КНОПКА ЗАРЕГИСТРИРОВАТЬСЯ -->
+            <button type="submit"
+                    style="width: 100%; padding: 12px; background-color: #4c60d1; color: white; border: none; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s; margin-bottom: 20px; font-family: 'Consolas', monospace;"
+                    onmouseover="this.style.backgroundColor='#7a8ce5'"
+                    onmouseout="this.style.backgroundColor='#4c60d1'">
+                Зарегистрироваться
+            </button>
+        </form>
+
+        <!-- СООБЩЕНИЕ ОБ ОШИБКЕ -->
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <p style="color: red; margin-top: 15px; font-size: 13px; text-align: center;">@Model.ErrorMessage</p>
+        }
+
+        <!-- ССЫЛКА НА ВХОД -->
+        <p style="margin-top: 20px; font-size: 13px; text-align: center; color: gray;">
+            Уже есть аккаунт? <a href="/Login" style="color: #4c60d1; text-decoration: none; font-weight: bold;">Войти</a>
+        </p>
+
+    </div>
 </div>

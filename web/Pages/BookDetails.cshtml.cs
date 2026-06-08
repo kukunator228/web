@@ -1,15 +1,16 @@
-using Microsoft.AspNetCore.Mvc;
+п»їusing Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using web.Models;
 
 namespace web.Pages
 {
     public class BookDetailsModel : PageModel
     {
-        private readonly AppDbContext _context;
+        private readonly ElochniBookStore2Context _context;
 
-        public BookDetailsModel(AppDbContext context)
+        public BookDetailsModel(ElochniBookStore2Context context)
         {
             _context = context;
         }
@@ -17,170 +18,285 @@ namespace web.Pages
         public Book? CurrentBook { get; set; }
         public List<Author> AuthorsList { get; set; } = new List<Author>();
         public bool IsAddedSuccess { get; set; } = false;
-
-        // Список отзывов для отображения на странице
         public List<BookReview> ReviewsList { get; set; } = new List<BookReview>();
+        public double AverageScore { get; set; } = 0.0;
+        public string ReviewErrorMessage { get; set; } = string.Empty;
+        public bool CanLeaveReview { get; set; } = false;
+        public bool UserHasReview { get; set; } = false;
 
-        // Свойство для связывания нового текста отзыва из формы
         [BindProperty]
         public string NewReviewText { get; set; } = string.Empty;
 
-        // Свойство для связывания числовой оценки (1-5) из формы
         [BindProperty]
-        public int NewReviewScore { get; set; } = 5; // По умолчанию ставим 5 звезд
+        public int NewReviewScore { get; set; } = 5;
 
-        // НОВОЕ: Свойство для хранения средней оценки книги
-        public double AverageScore { get; set; } = 0.0;
-
-        public string ReviewErrorMessage { get; set; } = string.Empty;
-
-        // Загрузка всех данных книги и отзывов
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Books == null) return Page();
+            if (id == null || _context.Books == null)
+            {
+                return RedirectToPage("/Books");
+            }
 
             CurrentBook = await _context.Books
-                .Include(b => b.BookType)
-                .FirstOrDefaultAsync(b => b.BookID == id);
+                .FirstOrDefaultAsync(b => b.BookId == id);
 
-            if (CurrentBook != null)
+            if (CurrentBook == null)
             {
-                // Подгружаем авторов произведения
-                if (_context.BookAuthors != null)
-                {
-                    AuthorsList = await _context.BookAuthors
-                        .Where(ba => ba.BookID == CurrentBook.BookID)
-                        .Select(ba => ba.Author)
-                        .Where(a => a != null)
-                        .ToListAsync();
-                }
+                ReviewErrorMessage = $"РљРЅРёРіР° СЃ ID={id} РЅРµ РЅР°Р№РґРµРЅР° РІ Р±Р°Р·Рµ РґР°РЅРЅС‹С…";
+                return Page();
+            }
 
-                // Подгружаем отзывы, сортируя их: самые полезные (высокий рейтинг) будут сверху!
-                if (_context.BookReviews != null)
-                {
-                    ReviewsList = await _context.BookReviews
-                        .Include(r => r.User) // Подтягиваем данные автора отзыва
-                        .Where(r => r.BookKey == CurrentBook.BookID)
-                        .OrderByDescending(r => r.RatingSum) // Сортировка по полезности
-                        .ThenByDescending(r => r.ReviewDate) // При равных баллах - сначала новые
-                        .ToListAsync();
+            CurrentBook.BookBooktypes = await _context.BookBooktypes
+                .Where(bb => bb.BookKey == id)
+                .Include(bb => bb.BookTypeKeyNavigation)
+                .ToListAsync();
 
-                    // НОВОЕ: Расчет средней оценки на основе BookScore
-                    if (ReviewsList != null && ReviewsList.Any())
-                    {
-                        // Считаем среднее значение и округляем до 1 знака после запятой
-                        AverageScore = Math.Round(ReviewsList.Average(r => r.BookScore), 1);
-                    }
-                    else
-                    {
-                        AverageScore = 0.0; // Если отзывов и оценок ещё нет
-                    }
-                }
+            CurrentBook.BookSupplies = await _context.BookSupplies
+                .Where(bs => bs.BookKey == id)
+                .Include(bs => bs.SupplierKeyNavigation)
+                .ToListAsync();
+
+            AuthorsList = await _context.BookAuthors
+                .Where(ba => ba.BookId == CurrentBook.BookId)
+                .Include(ba => ba.Author)
+                .Select(ba => ba.Author)
+                .Where(a => a != null)
+                .ToListAsync();
+
+            ReviewsList = await _context.BookReviews
+                .Where(r => r.BookKey == CurrentBook.BookId)
+                .Include(r => r.UserKeyNavigation)
+                .OrderByDescending(r => r.ReviewDate)
+                .ToListAsync();
+
+            if (ReviewsList.Any())
+            {
+                AverageScore = Math.Round(ReviewsList.Average(r => r.BookScore), 1);
+            }
+
+            var userIdClaim = User.FindFirst("UserID")?.Value;
+            if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int currentUserId))
+            {
+                var hasOrderWithStatus4 = await _context.OrderItems
+                    .Include(oi => oi.OrderKeyNavigation)
+                    .AnyAsync(oi => oi.BookKey == id &&
+                                   oi.OrderKeyNavigation.ClientKey == currentUserId &&
+                                   oi.OrderKeyNavigation.StatusKey == 4);
+
+                UserHasReview = await _context.BookReviews
+                    .AnyAsync(r => r.BookKey == id && r.UserKey == currentUserId);
+
+                CanLeaveReview = hasOrderWithStatus4 && !UserHasReview;
             }
 
             return Page();
         }
 
-        // Старый метод добавления в корзину
-        public async Task<IActionResult> OnPostAsync(int? id)
+        // Р”РѕР±Р°РІР»РµРЅРёРµ С„РёР·РёС‡РµСЃРєРѕР№ РєРЅРёРіРё РІ РєРѕСЂР·РёРЅСѓ
+        public async Task<IActionResult> OnPostAddToCartAsync(int supplyId, int quantity, int bookTypeId)
         {
-            if (id == null || _context.Books == null) return Page();
+            var userIdClaim = User.FindFirst("UserID")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int currentUserId))
+            {
+                TempData["CartErrorMessage"] = "Р”Р»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ С‚РѕРІР°СЂРѕРІ РІ РєРѕСЂР·РёРЅСѓ РЅРµРѕР±С…РѕРґРёРјРѕ РІРѕР№С‚Рё РІ СЃРёСЃС‚РµРјСѓ!";
+                return RedirectToPage("/Login");
+            }
 
-            await OnGetAsync(id);
+            var supply = await _context.BookSupplies
+                .AsNoTracking()
+                .Include(bs => bs.BookKeyNavigation)
+                .FirstOrDefaultAsync(bs => bs.BookSupplyId == supplyId);
+
+            if (supply == null)
+            {
+                TempData["CartErrorMessage"] = "РўРѕРІР°СЂ РЅРµ РЅР°Р№РґРµРЅ!";
+                return RedirectToPage("/Books");
+            }
+
+            int available = int.TryParse(supply.SupplyQuantity, out int q) ? q : 0;
+            if (quantity > available)
+            {
+                TempData["CartErrorMessage"] = $"Р”РѕСЃС‚СѓРїРЅРѕ С‚РѕР»СЊРєРѕ {available} С€С‚.";
+                return RedirectToPage(new { id = supply.BookKey });
+            }
+
+            var bookType = await _context.BookTypes
+                .FirstOrDefaultAsync(bt => bt.BookTypeId == bookTypeId);
 
             var cartSession = HttpContext.Session.GetString("UserCart");
-            List<int> cartItems = string.IsNullOrEmpty(cartSession)
-                ? new List<int>()
-                : JsonSerializer.Deserialize<List<int>>(cartSession) ?? new List<int>();
+            List<CartItem> cartItems = string.IsNullOrEmpty(cartSession)
+                ? new List<CartItem>()
+                : JsonSerializer.Deserialize<List<CartItem>>(cartSession) ?? new List<CartItem>();
 
-            cartItems.Add(id.Value);
+            var existingItem = cartItems.FirstOrDefault(i => i.BookSupplyId == supplyId);
+            if (existingItem != null)
+            {
+                existingItem.Quantity += quantity;
+                if (existingItem.Quantity > existingItem.MaxAvailable)
+                {
+                    existingItem.Quantity = existingItem.MaxAvailable;
+                }
+            }
+            else
+            {
+                cartItems.Add(new CartItem
+                {
+                    CartItemId = Guid.NewGuid().ToString(),
+                    BookId = supply.BookKey,
+                    BookName = supply.BookKeyNavigation?.BookName ?? "РљРЅРёРіР°",
+                    BookImagePath = supply.BookKeyNavigation?.ImagePath,
+                    BookSupplyId = supply.BookSupplyId,
+                    SupplierName = supply.SupplierKeyNavigation?.SupplierName ?? "РќРµРёР·РІРµСЃС‚РЅС‹Р№",
+                    PricePerUnit = supply.BookSupplyPiecePrice * 1.6m,
+                    Quantity = quantity,
+                    MaxAvailable = available,
+                    SupplyDate = supply.SupplyDate,
+                    SelectedBookTypeId = bookTypeId,
+                    SelectedBookTypeName = bookType?.BookTypeName ?? "Р¤РёР·РёС‡РµСЃРєР°СЏ РєРЅРёРіР°"
+                });
+            }
 
             HttpContext.Session.SetString("UserCart", JsonSerializer.Serialize(cartItems));
 
             IsAddedSuccess = true;
-            return Page();
+
+            TempData["CartMessage"] = $"РўРѕРІР°СЂ \"{supply.BookKeyNavigation?.BookName}\" РґРѕР±Р°РІР»РµРЅ РІ РєРѕСЂР·РёРЅСѓ!";
+
+            return RedirectToPage(new { id = supply.BookKey });
         }
 
-        // МЕТОД: Добавление нового отзыва на книгу с оценкой
+        // Р”РѕР±Р°РІР»РµРЅРёРµ СЌР»РµРєС‚СЂРѕРЅРЅРѕР№ РєРЅРёРіРё РІ РєРѕСЂР·РёРЅСѓ
+        public async Task<IActionResult> OnPostAddElectronicToCartAsync(int bookId, int bookTypeId, int quantity)
+        {
+            var userIdClaim = User.FindFirst("UserID")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int currentUserId))
+            {
+                TempData["CartErrorMessage"] = "Р”Р»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ С‚РѕРІР°СЂРѕРІ РІ РєРѕСЂР·РёРЅСѓ РЅРµРѕР±С…РѕРґРёРјРѕ РІРѕР№С‚Рё РІ СЃРёСЃС‚РµРјСѓ!";
+                return RedirectToPage("/Login");
+            }
+
+            var book = await _context.Books
+                .FirstOrDefaultAsync(b => b.BookId == bookId);
+
+            if (book == null)
+            {
+                TempData["CartErrorMessage"] = "РљРЅРёРіР° РЅРµ РЅР°Р№РґРµРЅР°!";
+                return RedirectToPage("/Books");
+            }
+
+            var bookType = await _context.BookTypes
+                .FirstOrDefaultAsync(bt => bt.BookTypeId == bookTypeId);
+
+            int virtualSupplyId = -bookTypeId;
+
+            var cartSession = HttpContext.Session.GetString("UserCart");
+            List<CartItem> cartItems = string.IsNullOrEmpty(cartSession)
+                ? new List<CartItem>()
+                : JsonSerializer.Deserialize<List<CartItem>>(cartSession) ?? new List<CartItem>();
+
+            decimal electronicPrice = 399;
+
+            var existingItem = cartItems.FirstOrDefault(i => i.BookSupplyId == virtualSupplyId);
+            if (existingItem != null)
+            {
+                existingItem.Quantity += quantity;
+            }
+            else
+            {
+                cartItems.Add(new CartItem
+                {
+                    CartItemId = Guid.NewGuid().ToString(),
+                    BookId = book.BookId,
+                    BookName = book.BookName,
+                    BookImagePath = book.ImagePath,
+                    BookSupplyId = virtualSupplyId,
+                    SupplierName = "Р­Р»РµРєС‚СЂРѕРЅРЅР°СЏ РІРµСЂСЃРёСЏ",
+                    PricePerUnit = electronicPrice,
+                    Quantity = quantity,
+                    MaxAvailable = 999,
+                    SupplyDate = DateOnly.FromDateTime(DateTime.Now),
+                    SelectedBookTypeId = bookTypeId,
+                    SelectedBookTypeName = bookType?.BookTypeName ?? "Р­Р»РµРєС‚СЂРѕРЅРЅР°СЏ РєРЅРёРіР°"
+                });
+            }
+
+            HttpContext.Session.SetString("UserCart", JsonSerializer.Serialize(cartItems));
+
+            IsAddedSuccess = true;
+
+            TempData["CartMessage"] = $"Р­Р»РµРєС‚СЂРѕРЅРЅР°СЏ РєРЅРёРіР° \"{book.BookName}\" РґРѕР±Р°РІР»РµРЅР° РІ РєРѕСЂР·РёРЅСѓ!";
+
+            return RedirectToPage(new { id = book.BookId });
+        }
+
         public async Task<IActionResult> OnPostAddReviewAsync(int id)
         {
             var userIdClaim = User.FindFirst("UserID")?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int currentUserId))
             {
-                // Если произошла ошибка, подгружаем данные страницы заново, чтобы она не была пустой
                 await OnGetAsync(id);
-                ReviewErrorMessage = "Только зарегистрированные пользователи могут оставлять отзывы!";
+                ReviewErrorMessage = "РўРѕР»СЊРєРѕ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»Рё РјРѕРіСѓС‚ РѕСЃС‚Р°РІР»СЏС‚СЊ РѕС‚Р·С‹РІС‹!";
                 return Page();
             }
 
             if (string.IsNullOrWhiteSpace(NewReviewText))
             {
-                return RedirectToPage(new { id });
+                await OnGetAsync(id);
+                ReviewErrorMessage = "РўРµРєСЃС‚ РѕС‚Р·С‹РІР° РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј";
+                return Page();
             }
 
-            // Создаем отзыв и передаем туда NewReviewScore, полученный из формы
+            var hasReview = await _context.BookReviews
+                .AnyAsync(r => r.BookKey == id && r.UserKey == currentUserId);
+
+            if (hasReview)
+            {
+                await OnGetAsync(id);
+                ReviewErrorMessage = "Р’С‹ СѓР¶Рµ РѕСЃС‚Р°РІРёР»Рё РѕС‚Р·С‹РІ РЅР° СЌС‚Сѓ РєРЅРёРіСѓ!";
+                return Page();
+            }
+
             var review = new BookReview
             {
                 BookKey = id,
                 UserKey = currentUserId,
                 ReviewText = NewReviewText.Trim(),
                 ReviewDate = DateTime.Now,
-                RatingSum = 0,
-                BookScore = NewReviewScore // Записываем оценку в созданный столбец!
+                BookScore = NewReviewScore
             };
 
             _context.BookReviews.Add(review);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                ReviewErrorMessage = $"РћС€РёР±РєР° РїСЂРё СЃРѕС…СЂР°РЅРµРЅРёРё РѕС‚Р·С‹РІР°: {innerMessage}";
+                await OnGetAsync(id);
+                return Page();
+            }
 
             return RedirectToPage(new { id });
         }
 
-        // МЕТОД: Голосование за отзыв (Стрелочки вверх/вниз)
-        public async Task<IActionResult> OnPostVoteAsync(int id, int reviewId, int voteValue)
+        public class CartItem
         {
-            var userIdClaim = User.FindFirst("UserID")?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int currentUserId))
-            {
-                return RedirectToPage(new { id }); // Если не залогинен - игнорируем клик
-            }
-
-            // Ищем, голосовал ли этот юзер за этот отзыв ранее
-            var existingVote = await _context.ReviewVotes
-                .FirstOrDefaultAsync(v => v.ReviewKey == reviewId && v.UserKey == currentUserId);
-
-            var review = await _context.BookReviews.FirstOrDefaultAsync(r => r.ReviewID == reviewId);
-            if (review == null) return RedirectToPage(new { id });
-
-            if (existingVote != null)
-            {
-                // Если пользователь нажал ту же стрелочку, что и раньше — отменяем его голос (убираем лайк/дизлайк)
-                if (existingVote.VoteValue == voteValue)
-                {
-                    review.RatingSum -= voteValue; // Возвращаем рейтинг обратно
-                    _context.ReviewVotes.Remove(existingVote);
-                }
-                else
-                {
-                    // Если пользователь передумал и нажал противоположную стрелочку
-                    review.RatingSum += (voteValue * 2); // Меняем баланс рейтинга (с -1 до +1 разница в 2 балла)
-                    existingVote.VoteValue = voteValue;
-                }
-            }
-            else
-            {
-                // Новое голосование
-                var vote = new ReviewVote
-                {
-                    ReviewKey = reviewId,
-                    UserKey = currentUserId,
-                    VoteValue = voteValue
-                };
-                _context.ReviewVotes.Add(vote);
-                review.RatingSum += voteValue;
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToPage(new { id });
+            public string CartItemId { get; set; } = Guid.NewGuid().ToString();
+            public int BookId { get; set; }
+            public string BookName { get; set; } = string.Empty;
+            public string? BookImagePath { get; set; }
+            public int BookSupplyId { get; set; }
+            public string SupplierName { get; set; } = string.Empty;
+            public DateOnly? SupplyDate { get; set; }
+            public decimal PricePerUnit { get; set; }
+            public int Quantity { get; set; }
+            public int MaxAvailable { get; set; }
+            public int SelectedBookTypeId { get; set; }
+            public string SelectedBookTypeName { get; set; } = string.Empty;
+            public decimal TotalPrice => PricePerUnit * Quantity;
         }
     }
 }

@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using web.Models;
 
 namespace web.Pages
 {
     public class RegisterModel : PageModel
     {
-        private readonly AppDbContext _context;
+        private readonly ElochniBookStore2Context _context;
 
-        public RegisterModel(AppDbContext context)
+        public RegisterModel(ElochniBookStore2Context context)
         {
             _context = context;
         }
@@ -31,7 +32,7 @@ namespace web.Pages
             var newUser = new User
             {
                 UserLogIn = login,
-                UserPasssword = password,
+                UserPassword = password,
                 RoleKey = 3
             };
 

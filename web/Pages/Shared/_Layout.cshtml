@@ -16,10 +16,11 @@
 
             .main-container {
                 padding: 20px;
+                min-height: calc(100vh - 200px);
             }
 
             a, a:visited {
-                color: #0000ee;
+                color: #4c60d1;
                 text-decoration: underline;
             }
 
@@ -28,7 +29,7 @@
                 }
 
             .status-null {
-                color: #b22222;
+                color: gray;
                 font-family: monospace;
             }
 
@@ -37,11 +38,10 @@
                 font-weight: bold;
             }
 
-            /* Стиль для баннера */
             .promo-banner {
                 width: 100%;
-                height: 300px; /* Высота баннера, можно менять */
-                background-color: white; /* Фоновый цвет на случай, если картинка не прогрузится */
+                height: 300px;
+                background-color: white;
                 position: relative;
                 overflow: hidden;
                 display: flex;
@@ -69,20 +69,76 @@
                 align-items: center;
                 gap: 10px;
             }
+
+            footer {
+                margin-top: 40px;
+                padding: 30px 20px 20px 20px;
+                border-top: 1px solid #ddd;
+                background-color: #f5f5f5;
+                font-size: 13px;
+                color: #555555;
+            }
+
+            .footer-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 40px;
+                text-align: center;
+            }
+
+            .footer-section {
+                flex: 1;
+                min-width: 180px;
+                text-align: center;
+            }
+
+                .footer-section h4 {
+                    margin: 0 0 10px 0;
+                    font-size: 14px;
+                    font-weight: bold;
+                    color: #4c60d1;
+                }
+
+                .footer-section p {
+                    margin: 5px 0;
+                    font-size: 12px;
+                    line-height: 1.5;
+                }
+
+                .footer-section a {
+                    color: #555555;
+                    text-decoration: none;
+                }
+
+                    .footer-section a:hover {
+                        color: #4c60d1;
+                        text-decoration: underline;
+                    }
+
+            .footer-bottom {
+                text-align: center;
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid #ddd;
+                font-size: 11px;
+                color: #999999;
+            }
     </style>
 </head>
 <body>
 
-    <!-- 1. ХОТБАР НА САМОМ ВЕРХУ (НА ВСЮ ШИРИНУ) -->
-    <header style="background-color: #c5c799; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #b0b288; width: 100%; box-sizing: border-box; position: relative; z-index: 100; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
-        <!-- ЛЕВАЯ ЧАСТЬ: Логотип, Главная, Авторы и Книги -->
+    <!-- ХОТБАР НА САМОМ ВЕРХУ -->
+    <header style="background-color: #c5c799; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; position: relative; z-index: 100; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+
+        <!-- ЛЕВАЯ ЧАСТЬ -->
         <div style="display: flex; align-items: center; gap: 25px;">
-            <!-- Логотип -->
             <a asp-page="/Index" style="display: flex; align-items: center;">
                 <img src="/images/graphics/logo.ico" alt="Лого" style="height: 20px; width: auto; object-fit: contain; margin-top: -3px" />
             </a>
 
-            <!-- Ссылки слева -->
             <nav style="display: flex; gap: 20px; align-items: center;">
                 @{
                     var currentPage = ViewContext.RouteData.Values["page"]?.ToString();
@@ -90,6 +146,8 @@
                     var isIndexActive = currentPage == "/Index";
                     var isAuthorsActive = currentPage == "/Authors";
                     var isBooksActive = currentPage == "/Books";
+                    var isMyOrdersActive = currentPage == "/MyOrders";
+                    var isCartActive = currentPage == "/Cart";
                     var isLoginActive = currentPage == "/Login";
                     var isRegisterActive = currentPage == "/Register";
 
@@ -100,17 +158,29 @@
                 <a asp-page="/Index" style="font-size: 16px; color: @(isIndexActive ? "#4c60d1" : "#000000"); text-decoration: none; font-weight: bold; padding-bottom: @pb; margin-bottom: @mb; border-bottom: @(isIndexActive ? "2px solid #4c60d1" : "2px solid transparent");">Главная</a>
                 <a asp-page="/Authors" style="font-size: 16px; color: @(isAuthorsActive ? "#4c60d1" : "#000000"); text-decoration: none; font-weight: bold; padding-bottom: @pb; margin-bottom: @mb; border-bottom: @(isAuthorsActive ? "2px solid #4c60d1" : "2px solid transparent");">Авторы</a>
                 <a asp-page="/Books" style="font-size: 16px; color: @(isBooksActive ? "#4c60d1" : "#000000"); text-decoration: none; font-weight: bold; padding-bottom: @pb; margin-bottom: @mb; border-bottom: @(isBooksActive ? "2px solid #4c60d1" : "2px solid transparent");">Книги</a>
-                
+                <a asp-page="/MyOrders" style="font-size: 16px; color: @(isMyOrdersActive ? "#4c60d1" : "#000000"); text-decoration: none; font-weight: bold; padding-bottom: @pb; margin-bottom: @mb; border-bottom: @(isMyOrdersActive ? "2px solid #4c60d1" : "2px solid transparent");">Мои заказы</a>
             </nav>
         </div>
 
-        <!-- ПРАВАЯ ЧАСТЬ: Вход / Регистрация или Профиль -->
+        <!-- ПРАВАЯ ЧАСТЬ -->
         <div style="display: flex; gap: 20px; align-items: center;">
+
+            <a asp-page="/Cart" style="display: flex; align-items: center; gap: 5px; text-decoration: none; color: #000000; font-weight: bold;">
+                <span style="font-size: 16px;">Корзина</span>
+            </a>
+
+            <span style="color: #7a7c56;">|</span>
+
             @if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                <span style="font-size: 14px; color: #000000;">Привет, <b>@User.Identity.Name</b>!</span>
+                <a asp-page="/MyOrders"
+                   style="font-size: 16px; color: #000000; text-decoration: none; font-weight: bold; transition: color 0.2s ease;"
+                   onmouseover="changeColor(this)"
+                   onmouseout="resetColor(this)">
+                    @User.Identity.Name
+                </a>
                 <span style="color: #7a7c56;">|</span>
-                <a asp-page="/Logout" style="color: #b22222; text-decoration: none; font-weight: bold;">Выйти</a>
+                <a asp-page="/Logout" style="color: #000000; text-decoration: none; font-weight: bold;">Выйти</a>
             }
             else
             {
@@ -122,47 +192,70 @@
 
     </header>
 
-    <!-- 2. СЮДА ПОСТАВИЛИ ПРОВЕРКУ (ПОКАЗЫВАЕМ БАННЕР ТОЛЬКО ЕСЛИ ОТКРЫТА ГЛАВНАЯ) -->
     @if (isIndexActive)
     {
         <section class="promo-banner">
-            <!-- Положи фоновую картинку баннера в wwwroot/images/banner.jpg -->
             <img src="/images/graphics/banner.png" alt="Фон баннера" class="banner-image">
-
-            <!-- Полупрозрачная плашка по центру -->
             <div class="banner-overlay" style="padding: 15px 25px;">
-                <!-- Крупный логотип магазина -->
                 <img src="/images/graphics/full_logo.png" alt="Логотип" style="height: 170px; width: auto; margin-top: 50px; object-fit: contain; display: block;" />
             </div>
         </section>
     }
 
-    <!-- 3. ОСНОВНОЙ КОНТЕНТ САЙТА (ТЕПЕРЬ БЕЗ БОКОВОЙ ТАБЛИЦЫ) -->
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
     <div class="main-container">
-
-        <!-- Выводим контент текущей страницы (например, таблицы из Index.cshtml) во всю доступную ширину -->
         @RenderBody()
-
-        <hr style="margin-top: 40px;" />
-
-        <!-- Вывод текущего статуса пользователя перемещен в подвал сайта -->
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555555;">
-            <p>&copy; 2026 «Ёлочный».</p>
-            <p>
-                Статус:
-                @if (User.Identity != null && User.Identity.IsAuthenticated)
-                {
-                    <span>Авторизован как <span class="status-ok">@User.Identity.Name</span></span>
-                }
-                else
-                {
-                    <span class="status-null">Гость (null)</span>
-                }
-            </p>
-        </div>
-
     </div>
 
+    <!-- ПОДВАЛ -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>«Ёлочный»</h4>
+                <p>Книжный магазин с душой</p>
+                <p>Лучшие книги по лучшим ценам</p>
+            </div>
+
+            <div class="footer-section">
+                <h4>Контакты</h4>
+                <p><a href="mailto:info@elochkiy.ru">info@elochkiy.ru</a></p>
+                <p><a href="tel:+71234567890">+7 (123) 456-78-90</a></p>
+                <p>г. Амурск, ул. Ёлочная, д. 14</p>
+            </div>
+
+            <div class="footer-section">
+                <h4>Помощь</h4>
+                <p><a asp-page="/Books">Каталог</a></p>
+                <p><a asp-page="/Cart">Корзина</a></p>
+                <p><a asp-page="/MyOrders">Мои заказы</a></p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 «Ёлочный». Все права защищены.</p>
+            <p style="margin-top: 5px; font-size: 10px;">Сайт создан с любовью к книгам</p>
+        </div>
+    </footer>
+
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+            function randomColor() {
+                var letters = '0123456789ABCDEF';
+                var color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            function changeColor(element) {
+                element.style.color = randomColor();
+            }
+
+            function resetColor(element) {
+                element.style.color = '#000000';
+            }
+    </script>
 </body>
 </html>

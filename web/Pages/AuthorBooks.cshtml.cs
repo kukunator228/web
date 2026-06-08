@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using web;
+using web.Models;
 
 namespace web.Pages
 {
     public class AuthorBooksModel : PageModel
     {
-        private readonly AppDbContext _context;
+        private readonly ElochniBookStore2Context _context;
 
-        public AuthorBooksModel(AppDbContext context)
+        public AuthorBooksModel(ElochniBookStore2Context context)
         {
             _context = context;
         }
@@ -20,14 +20,14 @@ namespace web.Pages
         [BindProperty(SupportsGet = true)]
         public string? SearchString { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int authorId)
+        public async Task<IActionResult> OnGetAsync(int AuthorId)
         {
             if (_context.Authors == null || _context.BookAuthors == null)
             {
                 return NotFound();
             }
 
-            var author = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorID == authorId);
+            var author = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorId == AuthorId);
             if (author == null)
             {
                 return NotFound();
@@ -36,7 +36,7 @@ namespace web.Pages
 
             var connectionsQuery = _context.BookAuthors
                 .Include(ba => ba.Book)
-                .Where(ba => ba.AuthorID == authorId);
+                .Where(ba => ba.AuthorId == AuthorId);
 
             if (!string.IsNullOrEmpty(SearchString))
             {

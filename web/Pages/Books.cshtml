@@ -1,7 +1,8 @@
 ﻿@page
+@using web.Models
 @model web.Pages.BooksModel
 @{
-    ViewData["Title"] = "Общий книжный фонд";
+    ViewData["Title"] = "Каталог книг";
 }
 
 
@@ -28,128 +29,184 @@
             </button>
         </div>
 
-        <!-- Выпадающий список категорий со скруглениями -->
+        <!-- Выпадающий список авторов -->
         <div style="display: flex; align-items: center; gap: 8px;">
-            <select name="SelectedTypeId" style="padding: 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 1px solid #b0b288; border-radius: 20px; outline: none; background-color: #ffffff; cursor: pointer;">
-                <option value="">[Все категории фондов]</option>
-                @if (Model.BookTypes != null)
+            <select name="SelectedAuthorId" style="padding: 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 1px solid #b0b288; border-radius: 20px; outline: none; background-color: #ffffff; cursor: pointer; width: 200px;">
+                <option value="">[Все авторы]</option>
+                @if (Model.Authors != null)
                 {
-                    foreach (var type in Model.BookTypes)
+                    foreach (var author in Model.Authors)
                     {
-                        if (Model.SelectedTypeId == type.BookTypeID)
+                        if (Model.SelectedAuthorId == author.AuthorId)
                         {
-                            <option value="@type.BookTypeID" selected="selected">@type.BookTypeName</option>
+                            <option value="@author.AuthorId" selected="selected">@author.AuthorSecondName @author.AuthorFirstName @author.AuthorPatronymic</option>
                         }
                         else
                         {
-                            <option value="@type.BookTypeID">@type.BookTypeName</option>
+                            <option value="@author.AuthorId">@author.AuthorSecondName @author.AuthorFirstName @author.AuthorPatronymic</option>
                         }
                     }
                 }
             </select>
         </div>
 
-        <!-- Кнопка применения фильтров -->
-        <input type="submit" value="Применить" style="padding: 7px 20px; font-family: 'Consolas', monospace; font-size: 13px; background-color: #c5c799; border: 1px solid #b0b288; border-radius: 20px; cursor: pointer; font-weight: bold; color: #000000;" />
+        <!-- Выпадающий список жанров -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <select name="SelectedGenreId" style="padding: 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 1px solid #b0b288; border-radius: 20px; outline: none; background-color: #ffffff; cursor: pointer;">
+                <option value="">[Все жанры]</option>
+                @if (Model.Genres != null)
+                {
+                    foreach (var genre in Model.Genres)
+                    {
+                        if (Model.SelectedGenreId == genre.GenreId)
+                        {
+                            <option value="@genre.GenreId" selected="selected">@genre.GenreName</option>
+                        }
+                        else
+                        {
+                            <option value="@genre.GenreId">@genre.GenreName</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+
+        <!-- Выпадающий список типов изданий -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <select name="SelectedTypeId" style="padding: 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 1px solid #b0b288; border-radius: 20px; outline: none; background-color: #ffffff; cursor: pointer;">
+                <option value="">[Все типы издания]</option>
+                @if (Model.BookTypes != null)
+                {
+                    foreach (var type in Model.BookTypes)
+                    {
+                        if (Model.SelectedTypeId == type.BookTypeId)
+                        {
+                            <option value="@type.BookTypeId" selected="selected">@type.BookTypeName</option>
+                        }
+                        else
+                        {
+                            <option value="@type.BookTypeId">@type.BookTypeName</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <select name="SelectedSupplierId" style="padding: 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 1px solid #b0b288; border-radius: 20px; outline: none; background-color: #ffffff; cursor: pointer;">
+                <option value="">[Все издательства]</option>
+                @if (Model.Suppliers != null)
+                {
+                    foreach (var supplier in Model.Suppliers)
+                    {
+                        if (Model.SelectedSupplierId == supplier.SupplierId)
+                        {
+                            <option value="@supplier.SupplierId" selected="selected">@supplier.SupplierName</option>
+                        }
+                        else
+                        {
+                            <option value="@supplier.SupplierId">@supplier.SupplierName</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+
+        <!-- Кнопка применения фильтров - ЧЕРНАЯ С БЕЛЫМ ТЕКСТОМ -->
+        <input type="submit" value="Применить" style="padding: 7px 20px; font-family: 'Consolas', monospace; font-size: 13px; background-color: #333333; color: white; border: 1px solid #333333; border-radius: 20px; cursor: pointer; font-weight: bold;" />
 
         <!-- Кнопка сброса (если фильтры активны) -->
-        @if (!string.IsNullOrEmpty(Model.SearchString) || Model.SelectedTypeId.HasValue)
+        @if (!string.IsNullOrEmpty(Model.SearchString) || Model.SelectedTypeId.HasValue || Model.SelectedGenreId.HasValue || Model.SelectedSupplierId.HasValue || Model.SelectedAuthorId.HasValue)
         {
-            <a href="/Books" style="color: #b22222; text-decoration: none; font-size: 13px; font-weight: bold; margin-left: 5px;">[Очистить фильтры]</a>
+            <a href="/Books" style="color: #4c60d1; text-decoration: none; font-size: 13px; font-weight: bold; margin-left: 5px;">[Очистить фильтры]</a>
         }
     </div>
 </form>
 
+<!-- Остальной код без изменений -->
 @if (Model.Books == null || !Model.Books.Any())
 {
-    <p style="color: #b22222; font-weight: bold;">
+    <p style="color: gray; font-weight: bold;">
         По заданным критериям фильтрации ничего не найдено.
         <a href="/Books" style="color: #4c60d1; text-decoration: none;">Сбросить фильтры</a>
     </p>
 }
 else
 {
-    <!-- СЕТКА КАРТОЧЕК КНИГ (Repeat Auto-Fill) -->
+    <!-- СЕТКА КАРТОЧЕК КНИГ -->
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px; margin-bottom: 40px; align-items: flex-start;">
 
         @foreach (var book in Model.Books)
         {
-            <!-- Карточка-ссылка (Вся плитка кликабельна) -->
-            <a href="/BookDetails?id=@book.BookID" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center;">
+            <!-- Карточка -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
 
-                <!-- Обертка обложки с анимацией наведения -->
-                <div style="width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 1px solid transparent; background-color: #f9f9f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.06); transition: box-shadow 0.2s ease;">
-                    @if (!string.IsNullOrEmpty(book.ImagePath))
-                    {
-                        <img src="@book.ImagePath" alt="Обложка" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease-in-out;" onmouseover="this.style.transform='scale(1.04)';" onmouseout="this.style.transform='scale(1)';" />
-                    }
-                    else
-                    {
-                        <span style="font-size: 12px; color: #7a7c56; font-weight: bold; text-transform: uppercase;">[нет обложки]</span>
-                    }
-                </div>
-
-                <!-- Текстовый блок описания книги -->
-                <div style="text-align: center; width: 100%; padding: 0 5px; display: flex; flex-direction: column; gap: 4px;">
-
-                    <!-- Тип издания (Текст / Аудио) мелким шрифтом -->
-                    <span style="font-size: 10px; color: #008000; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">
-                        @if (book.BookType != null)
+                <!-- Обертка обложки (ссылка) -->
+                <a href="/BookDetails?id=@book.BookId" style="width: 100%; text-decoration: none;">
+                    <div style="width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 1px solid transparent; background-color: #f9f9f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.06); transition: box-shadow 0.2s ease;">
+                        @if (!string.IsNullOrEmpty(book.ImagePath))
                         {
-                            <span>@book.BookType.BookTypeName</span>
+                            <img src="@book.ImagePath" alt="Обложка" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease-in-out;" onmouseover="this.style.transform='scale(1.04)';" onmouseout="this.style.transform='scale(1)';" />
                         }
                         else
                         {
-                            <span>Тип #@book.BookTypeID</span>
+                            <span style="font-size: 12px; color: #7a7c56; font-weight: bold; text-transform: uppercase;">[нет обложки]</span>
                         }
-                    </span>
+                    </div>
+                </a>
 
-                    <!-- Название произведения (Не обрезается) -->
+                <!-- Название (ссылка) -->
+                <a href="/BookDetails?id=@book.BookId" style="text-decoration: none; text-align: center; width: 100%;">
                     <span style="font-size: 13px; font-weight: bold; line-height: 1.3; color: #000000; display: block;" onmouseover="this.style.color='#4c60d1'" onmouseout="this.style.color='#000000'">
                         @book.BookName
                     </span>
+                </a>
 
-                    <!-- Авторы произведения -->
-                    <span style="font-size: 11px; color: #555555; font-style: italic; display: block;">
-                        @{
-                            var authorsForThisBook = Model.BookAuthorsConnections
-                                .Where(ba => ba.BookID == book.BookID)
-                                .Select(ba => ba.Author)
-                                .Where(a => a != null)
-                                .ToList();
-                        }
-                        @if (authorsForThisBook.Any())
+                <!-- Авторы -->
+                <span style="font-size: 11px; color: #555555; font-style: italic; display: block; text-align: center;">
+                    @{
+                        var authorsForThisBook = Model.BookAuthorsDict.ContainsKey(book.BookId)
+                            ? Model.BookAuthorsDict[book.BookId]
+                            : new List<Author>();
+                    }
+                    @if (authorsForThisBook.Any())
+                    {
+                        <span>
+                            @string.Join(", ", authorsForThisBook.Select(a => $"{a.AuthorSecondName} {a.AuthorFirstName[0]}.{(!string.IsNullOrEmpty(a.AuthorPatronymic) ? a.AuthorPatronymic[0] + "." : "")}"))
+                        </span>
+                    }
+                    else
+                    {
+                        <span style="color:gray;">Автор не указан</span>
+                    }
+                </span>
+
+                <!-- Жанры -->
+                @if (book.BookGenres != null && book.BookGenres.Any())
+                {
+                    <div style="margin-top: 5px; text-align: center;">
+                        @foreach (var bookGenre in book.BookGenres.Take(2))
                         {
-                            <span>
-                                @string.Join(", ", authorsForThisBook.Select(a => $"{a.AuthorSecondName} {a.AuthorFirstName[0]}.{(!string.IsNullOrEmpty(a.AuthorPatronymic) ? a.AuthorPatronymic[0] + "." : "")}"))
+                            <span style="font-size: 8px; background-color: #f0f0f0; color: #666; padding: 2px 5px; border-radius: 10px; display: inline-block; margin: 1px;">
+                                @bookGenre.GenreKeyNavigation?.GenreName
                             </span>
                         }
-                        else
+                        @if (book.BookGenres.Count() > 2)
                         {
-                            <span style="color: #999999;">Автор не указан</span>
-                        }
-                    </span>
-
-                    <!-- Блок рейтинга (Звездочки) -->
-                    <div style="margin-top: 2px;">
-                        @if (book.BookReviews != null && book.BookReviews.Any())
-                        {
-                            var avg = book.BookReviews.Average(r => r.BookScore);
-                            int fullStars = (int)Math.Round(avg);
-
-                            <span style="color: #f39c12; font-size: 12px;" title="Оценка: @avg.ToString("F1")">
-                                @Html.Raw(new string('★', fullStars))@Html.Raw(new string('☆', 5 - fullStars))
-                            </span>
-                        }
-                        else
-                        {
-                            <span style="color: #bcbcbc; font-size: 11px; font-style: italic;">нет оценок</span>
+                            <span style="font-size: 8px; color: #999;">+@(book.BookGenres.Count() - 2)</span>
                         }
                     </div>
+                }
 
+                <!-- КНОПКА "В КОРЗИНУ" -->
+                <div style="margin-top: 10px;">
+                    <a href="/BookDetails?id=@book.BookId"
+                       style="background-color: #4c60d1; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; text-decoration: none; display: inline-block;">
+                        В корзину
+                    </a>
                 </div>
-            </a>
-        }
 
+            </div>
+        }
     </div>
 }

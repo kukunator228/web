@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using web;
+using web.Models;
 
 namespace web.Pages
 {
     public class AuthorsModel : PageModel
     {
-        private readonly AppDbContext _context;
+        private readonly ElochniBookStore2Context _context;
 
-        public AuthorsModel(AppDbContext context)
+        public AuthorsModel(ElochniBookStore2Context context)
         {
             _context = context;
         }
