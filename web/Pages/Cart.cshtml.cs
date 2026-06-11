@@ -30,12 +30,15 @@ namespace web.Pages
             public int BookId { get; set; }
             public string BookName { get; set; } = string.Empty;
             public string? BookImagePath { get; set; }
+            public int SelectedBookTypeId { get; set; }
+            public string SelectedBookTypeName { get; set; } = string.Empty;
             public decimal TotalPrice => PricePerUnit * Quantity;
         }
 
         public List<CartItemGroup> CartItems { get; set; } = new List<CartItemGroup>();
         public decimal TotalSum { get; set; }
         public string OrderMessage { get; set; } = string.Empty;
+        public string MaskedEmail { get; set; } = string.Empty;
 
         [BindProperty]
         public string AddressIndex { get; set; } = string.Empty;
@@ -56,6 +59,35 @@ namespace web.Pages
                 OrderIndicesList = await _context.OrderIndices
                     .Select(oi => oi.Index.Trim())
                     .ToListAsync();
+            }
+            // Загружаем маскированную почту пользователя
+            var userIdClaim = User.FindFirst("UserID")?.Value;
+            if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int currentUserId))
+            {
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.UserId == currentUserId);
+
+                if (user != null && !string.IsNullOrEmpty(user.UserEmail)) // Используем Email вместо UserLogIn
+                {
+                    var email = user.UserEmail;
+                    var atIndex = email.IndexOf('@');
+                    if (atIndex > 3)
+                    {
+                        var prefix = email.Substring(0, 3);
+                        var domain = email.Substring(atIndex);
+                        MaskedEmail = $"{prefix}****{domain}";
+                    }
+                    else if (atIndex > 0)
+                    {
+                        var prefix = email.Substring(0, 1);
+                        var domain = email.Substring(atIndex);
+                        MaskedEmail = $"{prefix}***{domain}";
+                    }
+                    else
+                    {
+                        MaskedEmail = email;
+                    }
+                }
             }
 
             var cartSession = HttpContext.Session.GetString("UserCart");
@@ -98,7 +130,7 @@ namespace web.Pages
                         {
                             item.BookName = book.BookName;
                             item.BookImagePath = book.ImagePath;
-                            item.PricePerUnit = 399; // Цена электронной книги
+                            item.PricePerUnit = 399;
                             item.MaxAvailable = 999;
                             item.SupplierName = "Электронная версия";
                             item.SupplyDate = DateOnly.FromDateTime(DateTime.Now);
@@ -113,7 +145,7 @@ namespace web.Pages
             }
         }
 
-        // ОБНОВЛЕНИЕ КОЛИЧЕСТВА (возвращает JSON для динамического обновления)
+        // ОБНОВЛЕНИЕ КОЛИЧЕСТВА (возвращает JSON)
         public IActionResult OnPostUpdateQuantity(string cartItemId, int quantity)
         {
             var cartSession = HttpContext.Session.GetString("UserCart");
@@ -126,7 +158,6 @@ namespace web.Pages
                     item.Quantity = quantity;
                     HttpContext.Session.SetString("UserCart", JsonSerializer.Serialize(cartData, _jsonOptions));
 
-                    // Возвращаем общую сумму корзины для динамического обновления
                     var totalSum = cartData.Sum(i => i.TotalPrice);
                     return new JsonResult(new { success = true, totalSum = totalSum });
                 }
@@ -134,7 +165,7 @@ namespace web.Pages
             return new JsonResult(new { success = false });
         }
 
-        // УДАЛЕНИЕ ТОВАРА (возвращает JSON)
+        // УДАЛЕНИЕ ТОВАРА (возвращает RedirectToPage)
         public IActionResult OnPostRemoveItem(string cartItemId)
         {
             var cartSession = HttpContext.Session.GetString("UserCart");
@@ -146,10 +177,9 @@ namespace web.Pages
                 {
                     cartData.Remove(item);
                     HttpContext.Session.SetString("UserCart", JsonSerializer.Serialize(cartData, _jsonOptions));
-                    return new JsonResult(new { success = true });
                 }
             }
-            return new JsonResult(new { success = false });
+            return RedirectToPage();
         }
 
         public IActionResult OnPostClear()
@@ -169,12 +199,12 @@ namespace web.Pages
                 return Page();
             }
 
-            // Проверяем, есть ли в корзине физические книги
             var hasPhysicalBooks = CartItems.Any(i => i.BookSupplyId > 0);
 
+            // Проверяем индекс ТОЛЬКО если есть физические книги
             if (hasPhysicalBooks && string.IsNullOrEmpty(AddressIndex))
             {
-                OrderMessage = "Для доставки физических книг необходимо выбрать почтовый индекс!";
+                OrderMessage = "Для доставки физических изданий необходимо выбрать почтовый индекс!";
                 await OnGetAsync();
                 return Page();
             }
@@ -198,9 +228,12 @@ namespace web.Pages
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // Для электронных книг используем "0", для физических - выбранный индекс
+                string addressIndexValue = hasPhysicalBooks ? AddressIndex.Trim() : "0";
+
                 var newOrder = new Order
                 {
-                    AdressIndexKey = hasPhysicalBooks ? AddressIndex.Trim() : "НЕ ТРЕБУЕТСЯ",
+                    AdressIndexKey = addressIndexValue,
                     OrderDate = DateOnly.FromDateTime(DateTime.Now),
                     ClientKey = currentUserId,
                     StatusKey = 1
@@ -211,8 +244,7 @@ namespace web.Pages
 
                 foreach (var item in cartItems)
                 {
-                    // Проверяем наличие только для физических книг
-                    if (item.BookSupplyId > 0)
+                    if (item.BookSupplyId > 0) // Только для физических книг
                     {
                         var supply = await _context.BookSupplies
                             .FirstOrDefaultAsync(bs => bs.BookSupplyId == item.BookSupplyId);
@@ -225,10 +257,9 @@ namespace web.Pages
                         int availableInSupply = int.TryParse(supply.SupplyQuantity, out int q) ? q : 0;
                         if (item.Quantity > availableInSupply)
                         {
-                            throw new Exception($"Для книги \"{item.BookName}\" доступно только {availableInSupply} шт.");
+                            throw new Exception($"Для издания \"{item.BookName}\" доступно только {availableInSupply} шт.");
                         }
 
-                        // Уменьшаем количество в поставке
                         supply.SupplyQuantity = (availableInSupply - item.Quantity).ToString();
                         _context.BookSupplies.Update(supply);
                     }
@@ -250,18 +281,7 @@ namespace web.Pages
                 CartItems.Clear();
                 TotalSum = 0;
 
-                if (hasPhysicalBooks && cartItems.Any(i => i.BookSupplyId < 0))
-                {
-                    OrderMessage = $"Заказ №{newOrder.OrderId} успешно оформлен! Физические книги будут доставлены по индексу {AddressIndex}, электронные - отправлены на вашу почту.";
-                }
-                else if (hasPhysicalBooks)
-                {
-                    OrderMessage = $"Заказ №{newOrder.OrderId} успешно оформлен! Книги будут доставлены по индексу {AddressIndex}.";
-                }
-                else
-                {
-                    OrderMessage = $"Заказ №{newOrder.OrderId} успешно оформлен! Электронные книги отправлены на вашу почту.";
-                }
+                TempData["SuccessMessage"] = $"Спасибо за покупку! Ваш заказ №{newOrder.OrderId} успешно оформлен.";
 
                 return Page();
             }

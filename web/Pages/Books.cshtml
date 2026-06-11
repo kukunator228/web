@@ -92,9 +92,10 @@
             </select>
         </div>
 
+        <!-- Выпадающий список поставщиков (было "издательства") -->
         <div style="display: flex; align-items: center; gap: 8px;">
             <select name="SelectedSupplierId" style="padding: 7px 12px; font-family: 'Consolas', monospace; font-size: 13px; border: 1px solid #b0b288; border-radius: 20px; outline: none; background-color: #ffffff; cursor: pointer;">
-                <option value="">[Все издательства]</option>
+                <option value="">[Все поставщики]</option>
                 @if (Model.Suppliers != null)
                 {
                     foreach (var supplier in Model.Suppliers)
@@ -112,7 +113,7 @@
             </select>
         </div>
 
-        <!-- Кнопка применения фильтров - ЧЕРНАЯ С БЕЛЫМ ТЕКСТОМ -->
+        <!-- Кнопка применения фильтров -->
         <input type="submit" value="Применить" style="padding: 7px 20px; font-family: 'Consolas', monospace; font-size: 13px; background-color: #333333; color: white; border: 1px solid #333333; border-radius: 20px; cursor: pointer; font-weight: bold;" />
 
         <!-- Кнопка сброса (если фильтры активны) -->
@@ -198,15 +199,8 @@ else
                     </div>
                 }
 
-                <!-- КНОПКА "В КОРЗИНУ" -->
-                <div style="margin-top: 10px;">
-                    <a href="/BookDetails?id=@book.BookId"
-                       style="background-color: #4c60d1; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; text-decoration: none; display: inline-block;">
-                        В корзину
-                    </a>
-                </div>
-
             </div>
         }
+
     </div>
 }

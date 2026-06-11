@@ -304,6 +304,7 @@ public partial class ElochniBookStore2Context : DbContext
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.UserLogIn).HasMaxLength(50);
+            entity.Property(e => e.UserEmail).HasMaxLength(50);
             entity.Property(e => e.UserPassword).HasMaxLength(50);
 
             entity.HasOne(d => d.RoleKeyNavigation).WithMany(p => p.Users)

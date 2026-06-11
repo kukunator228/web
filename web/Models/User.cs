@@ -11,11 +11,12 @@ public partial class User
 
     public string UserPassword { get; set; } = null!;
 
+    public string UserEmail { get; set; }
+
     public int RoleKey { get; set; }
 
     public virtual ICollection<BookReview> BookReviews { get; set; } = new List<BookReview>();
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    public virtual Role RoleKeyNavigation { get; set; } = null!;
 }

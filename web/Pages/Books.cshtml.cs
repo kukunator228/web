@@ -37,21 +37,8 @@ namespace web.Pages
         [BindProperty(SupportsGet = true)]
         public int? SelectedAuthorId { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public string? SelectedAuthorName { get; set; } // ← ДОБАВЬ ЭТУ СТРОКУ
-
         public async Task OnGetAsync()
         {
-            // Парсим выбранного автора из строки (формат "ID|Имя")
-            if (!string.IsNullOrEmpty(SelectedAuthorName) && SelectedAuthorName.Contains("|"))
-            {
-                var parts = SelectedAuthorName.Split('|');
-                if (int.TryParse(parts[0], out int authorId))
-                {
-                    SelectedAuthorId = authorId;
-                }
-            }
-
             await LoadBookTypesAsync();
             await LoadGenresAsync();
             await LoadSuppliersAsync();
@@ -161,89 +148,6 @@ namespace web.Pages
                     g => g.Key,
                     g => g.Select(x => x.Author!).ToList()
                 );
-        }
-
-        public async Task<IActionResult> OnPostAddToCartAsync(int bookId)
-        {
-            var userIdClaim = User.FindFirst("UserID")?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int currentUserId))
-            {
-                TempData["CartMessage"] = "Для добавления в корзину необходимо войти в систему!";
-                return RedirectToPage("/Login");
-            }
-
-            var book = await _context.Books
-                .Include(b => b.BookSupplies)
-                    .ThenInclude(bs => bs.SupplierKeyNavigation)
-                .FirstOrDefaultAsync(b => b.BookId == bookId);
-
-            if (book == null)
-            {
-                TempData["CartMessage"] = "Книга не найдена!";
-                return RedirectToPage();
-            }
-
-            var cheapestSupply = book.BookSupplies?
-                .Where(s => int.TryParse(s.SupplyQuantity, out int q) && q > 0)
-                .OrderBy(s => s.BookSupplyPiecePrice * 1.6m)
-                .FirstOrDefault();
-
-            if (cheapestSupply == null)
-            {
-                TempData["CartMessage"] = "Нет доступных предложений для этой книги!";
-                return RedirectToPage();
-            }
-
-            int available = int.TryParse(cheapestSupply.SupplyQuantity, out int qty) ? qty : 0;
-
-            var cartSession = HttpContext.Session.GetString("UserCart");
-            List<CartItem> cartItems = string.IsNullOrEmpty(cartSession)
-                ? new List<CartItem>()
-                : JsonSerializer.Deserialize<List<CartItem>>(cartSession) ?? new List<CartItem>();
-
-            var existingItem = cartItems.FirstOrDefault(i => i.BookSupplyId == cheapestSupply.BookSupplyId);
-            if (existingItem != null)
-            {
-                existingItem.Quantity += 1;
-                if (existingItem.Quantity > existingItem.MaxAvailable)
-                {
-                    existingItem.Quantity = existingItem.MaxAvailable;
-                }
-            }
-            else
-            {
-                cartItems.Add(new CartItem
-                {
-                    CartItemId = Guid.NewGuid().ToString(),
-                    BookId = book.BookId,
-                    BookName = book.BookName,
-                    BookSupplyId = cheapestSupply.BookSupplyId,
-                    SupplierName = cheapestSupply.SupplierKeyNavigation?.SupplierName ?? "Неизвестный",
-                    PricePerUnit = cheapestSupply.BookSupplyPiecePrice * 1.6m,
-                    Quantity = 1,
-                    MaxAvailable = available,
-                    SupplyDate = cheapestSupply.SupplyDate
-                });
-            }
-
-            HttpContext.Session.SetString("UserCart", JsonSerializer.Serialize(cartItems));
-
-            TempData["CartMessage"] = $"Книга \"{book.BookName}\" добавлена в корзину!";
-            return RedirectToPage();
-        }
-
-        public class CartItem
-        {
-            public string CartItemId { get; set; } = Guid.NewGuid().ToString();
-            public int BookId { get; set; }
-            public string BookName { get; set; } = string.Empty;
-            public int BookSupplyId { get; set; }
-            public string SupplierName { get; set; } = string.Empty;
-            public DateOnly? SupplyDate { get; set; }
-            public decimal PricePerUnit { get; set; }
-            public int Quantity { get; set; }
-            public int MaxAvailable { get; set; }
-            public decimal TotalPrice => PricePerUnit * Quantity;
         }
     }
 }

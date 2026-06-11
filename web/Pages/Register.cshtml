@@ -16,17 +16,17 @@
 <div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; padding: 20px;">
     <div style="width: 100%; max-width: 450px; background-color: white; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 40px;">
 
-        <!-- ЗАГОЛОВОК (как ФИО автора) -->
+        <!-- ЗАГОЛОВОК -->
         <h2 style="margin: 0 0 30px 0; font-size: 46px; color: #4c60d1; font-weight: bold; letter-spacing: -0.5px; text-align: center;">
             Регистрация
         </h2>
 
         <form method="post">
             <!-- ЛОГИН -->
-            <div style="margin-bottom: 25px;">
+            <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #000000;">ЛОГИН</label>
                 <input type="text"
-                       name="Login"
+                       asp-for="Login"
                        required
                        autocomplete="off"
                        style="width: 100%; padding: 12px 15px; font-size: 14px; border: 2px solid #4c60d1; border-radius: 30px; box-sizing: border-box; outline: none; transition: 0.3s; font-family: 'Consolas', monospace;"
@@ -35,11 +35,34 @@
             </div>
 
             <!-- ПАРОЛЬ -->
-            <div style="margin-bottom: 30px;">
+            <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #000000;">ПАРОЛЬ</label>
                 <input type="password"
-                       name="Password"
+                       asp-for="Password"
                        required
+                       style="width: 100%; padding: 12px 15px; font-size: 14px; border: 2px solid #4c60d1; border-radius: 30px; box-sizing: border-box; outline: none; transition: 0.3s; font-family: 'Consolas', monospace;"
+                       onfocus="this.style.borderColor='#7a8ce5'; this.style.boxShadow='0 0 5px rgba(76,96,209,0.3)'"
+                       onblur="this.style.borderColor='#4c60d1'; this.style.boxShadow='none'" />
+            </div>
+
+            <!-- ПОДТВЕРЖДЕНИЕ ПАРОЛЯ -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #000000;">ПОДТВЕРЖДЕНИЕ ПАРОЛЯ</label>
+                <input type="password"
+                       asp-for="ConfirmPassword"
+                       required
+                       style="width: 100%; padding: 12px 15px; font-size: 14px; border: 2px solid #4c60d1; border-radius: 30px; box-sizing: border-box; outline: none; transition: 0.3s; font-family: 'Consolas', monospace;"
+                       onfocus="this.style.borderColor='#7a8ce5'; this.style.boxShadow='0 0 5px rgba(76,96,209,0.3)'"
+                       onblur="this.style.borderColor='#4c60d1'; this.style.boxShadow='none'" />
+            </div>
+
+            <!-- ЭЛЕКТРОННАЯ ПОЧТА -->
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #000000;">ЭЛЕКТРОННАЯ ПОЧТА</label>
+                <input type="email"
+                       asp-for="Email"
+                       required
+                       autocomplete="off"
                        style="width: 100%; padding: 12px 15px; font-size: 14px; border: 2px solid #4c60d1; border-radius: 30px; box-sizing: border-box; outline: none; transition: 0.3s; font-family: 'Consolas', monospace;"
                        onfocus="this.style.borderColor='#7a8ce5'; this.style.boxShadow='0 0 5px rgba(76,96,209,0.3)'"
                        onblur="this.style.borderColor='#4c60d1'; this.style.boxShadow='none'" />

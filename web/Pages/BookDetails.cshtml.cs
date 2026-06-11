@@ -37,7 +37,10 @@ namespace web.Pages
                 return RedirectToPage("/Books");
             }
 
+            // Загружаем книгу ВМЕСТЕ с жанрами
             CurrentBook = await _context.Books
+                .Include(b => b.BookGenres)           // ← ДОБАВЛЕНО
+                    .ThenInclude(bg => bg.GenreKeyNavigation)  // ← ДОБАВЛЕНО
                 .FirstOrDefaultAsync(b => b.BookId == id);
 
             if (CurrentBook == null)

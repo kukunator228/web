@@ -9,7 +9,6 @@
     <div style="display: grid; grid-template-columns: 1fr; gap: 40px; margin-bottom: 35px;">
         <div style="display: flex; flex-direction: column; justify-content: flex-start; min-width: 0;">
 
-            <!-- ЗАГОЛОВОК "ЗАКАЗЫ" КАК ФИО АВТОРА -->
             <h2 style="margin: 0 0 5px 0; font-size: 46px; color: #4c60d1; font-weight: bold; letter-spacing: -0.5px;">
                 Заказы
             </h2>
@@ -45,16 +44,19 @@ else
                 badgeColor = "#27ae60";
                 bgColor = "#e8f8f5";
             }
-            else if (order.StatusKey == 4)  // Выдан клиенту (ID = 4)
+            else if (order.StatusKey == 4)
             {
                 badgeColor = "#28a745";
                 bgColor = "#d4edda";
             }
-            else if (order.StatusKey == 5)  // Отменен (если есть)
+            else if (order.StatusKey == 5)
             {
                 badgeColor = "#dc3545";
                 bgColor = "#fdedec";
             }
+
+            // Определяем, является ли заказ полностью электронным (индекс == "0" или null/пустой)
+            bool isElectronicOrder = string.IsNullOrEmpty(order.AdressIndexKey) || order.AdressIndexKey.Trim() == "0";
 
             <!-- КАРТОЧКА ЗАКАЗА -->
             <div style="border: 1px solid #ddd; padding: 15px; border-radius: 10px; background-color: #f9f9f9;">
@@ -66,34 +68,48 @@ else
                             <span style="font-size: 16px; color: #666;">Заказ №</span>
                             <span style="font-size: 20px; font-weight: bold; color: #4c60d1;">@order.OrderId</span>
                         </div>
-                        <!-- СТАТУС ЗАКАЗА (ОДИН РАЗ) -->
                         <div>
                             <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background-color: @bgColor; color: @badgeColor; font-size: 14px; font-weight: 600;">
-                                @(order.StatusKeyNavigation != null ? order.StatusKeyNavigation.StatusName : $"Статус #{order.StatusKey}")
+                                @(order.StatusKeyNavigation?.StatusName ?? $"Статус #{order.StatusKey}")
                             </span>
                         </div>
                     </div>
                     <div style="text-align: right;">
                         <span style="font-size: 16px; color: #666;">От @order.OrderDate.ToString("dd.MM.yyyy")</span>
                         <br />
-                        <span style="font-size: 14px; color: #999;">Индекс: @(string.IsNullOrEmpty(order.AdressIndexKey) ? "не указан" : order.AdressIndexKey.Trim())</span>
+                        @if (isElectronicOrder)
+                        {
+                            <span style="font-size: 14px; color: #999;">
+                                Email: @Model.MaskedEmail
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="font-size: 14px; color: #999;">
+                                Индекс: @order.AdressIndexKey.Trim()
+                            </span>
+                        }
                     </div>
                 </div>
 
-                <!-- ТОВАРЫ В ЗАКАЗЕ (БЕЗ СТАТУСА) -->
+                <!-- ТОВАРЫ В ЗАКАЗЕ -->
                 @if (order.OrderItems != null && order.OrderItems.Any())
                 {
                     @foreach (var item in order.OrderItems)
                     {
                         if (item.BookKeyNavigation != null)
                         {
-                            var hasReview = Model.UserReviews.Any(r => r.BookKey == item.BookKeyNavigation.BookId);
+                            var hasReview = Model.UserReviews != null && Model.UserReviews.Any(r => r.BookKey == item.BookKeyNavigation.BookId);
+                            // Безопасное получение количества
+                            var quantity = "1";
+                            if (!string.IsNullOrEmpty(item.OrderBookQuantity))
+                            {
+                                quantity = item.OrderBookQuantity.Trim();
+                            }
 
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 15px;">
 
-                                <!-- Левая часть: обложка + название -->
                                 <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
-                                    <!-- Обложка -->
                                     <div style="width: 50px; height: 67px; overflow: hidden; border-radius: 5px; background-color: #eee;">
                                         @if (!string.IsNullOrEmpty(item.BookKeyNavigation.ImagePath))
                                         {
@@ -105,17 +121,15 @@ else
                                         }
                                     </div>
 
-                                    <!-- Название и количество -->
                                     <div>
                                         <a href="/BookDetails?id=@item.BookKeyNavigation.BookId" style="font-size: 16px; font-weight: 600; color: #4c60d1; text-decoration: none;">
                                             @item.BookKeyNavigation.BookName
                                         </a>
                                         <br />
-                                        <span style="font-size: 14px; color: #666;">@(string.IsNullOrEmpty(item.OrderBookQuantity) ? "1" : item.OrderBookQuantity.Trim()) шт.</span>
+                                        <span style="font-size: 14px; color: #666;">@quantity шт.</span>
                                     </div>
                                 </div>
 
-                                <!-- Правая часть: кнопка отзыва или надпись "Отзыв оставлен" -->
                                 <div style="text-align: right;">
                                     @if (order.StatusKey == 4)
                                     {
